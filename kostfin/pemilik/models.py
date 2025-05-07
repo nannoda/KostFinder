@@ -17,8 +17,14 @@ class Kost(models.Model):
     fasilitas = models.CharField(max_length=255);
     pemilik = models.ForeignKey('pemilik.PemilikKost', on_delete=models.CASCADE);
     admin = models.ForeignKey('Admin.Admin', on_delete=models.CASCADE);
-    gambar = models.ImageField(upload_to='gambar_kost/', null=True, blank=True);
     lokasi = models.URLField(max_length=500, help_text="Masukkan URL Google Maps", null=True, blank=True);
     
     def __str__(self):
         return self.nama;
+    
+class KostImage(models.Model):
+    kost = models.ForeignKey(Kost, on_delete=models.CASCADE, related_name='gambar_kost')
+    gambar = models.ImageField(upload_to='gambar_kost/')
+
+    def __str__(self):
+        return f"Gambar untuk {self.kost.nama}"
