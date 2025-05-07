@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 # from django.http import HttpResponse
 
 
 urlpatterns = [
-    # path("Admin/", admin.site.urls),
+    path("Admin/", admin.site.urls),
     path('api/admin/', include('Admin.urls')),
     path('api/pemilik/', include('pemilik.urls')),
     path('api/pencari/', include('pencari.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

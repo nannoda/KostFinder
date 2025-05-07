@@ -1,16 +1,35 @@
 'use client';
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const Home = () => {
-  const kostDummy = Array(5).fill({
-    type: "Putra",
-    rating: "5.0",
-    price: "IDR 600.000",
-    title: "Kost Ghafi Tipe A Gonilan",
-    location: "Jl. Nusa Indah No. 10, Kartasura"
-  });
+  const [kosts, setKosts] = useState([]);
+
+  useEffect(() => {
+    const fetchKostData = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/pemilik/kost/");
+        const data = await response.json();
+
+        const formatted = data.map(kost => ({
+          type: "Putra", // kamu bisa sesuaikan jika backend nanti mendukung
+          rating: "5.0",
+          price: `IDR ${(kost.harga / 12).toLocaleString("id-ID")}`,
+          title: kost.nama,
+          location: kost.alamat,
+          image: kost.gambar_kost[0]?.gambar || null,
+        }));
+
+        setKosts(formatted);
+      } catch (err) {
+        console.error("Failed to fetch kost:", err);
+      }
+    };
+
+    fetchKostData();
+  }, []);
+
 
   const KostCard = ({ kost }) => (
     <div className="border rounded-xl p-4 w-90 h-100 bg-white shadow-sm">
@@ -18,12 +37,17 @@ const Home = () => {
         <span className="font-semibold text-black">{kost.type}</span>
         <span className="text-gray-500">{kost.rating}</span>
       </div>
-      <img src="/kost/sample-kost.jpg" className="h-60 bg-gray-200 mb-2 rounded"></img>
+      <img
+        src={kost.image || "/kost/sample-kost.jpg"}
+        className="h-60 w-full object-cover bg-gray-200 mb-2 rounded"
+        alt={kost.title}
+      />
       <p className="text-lg font-semibold text-black">{kost.price}</p>
       <p className="text-lg text-black">{kost.title}</p>
       <p className="text-sm text-gray-500">{kost.location}</p>
     </div>
   );
+
 
   const sectionTitles = [
     ["Terbaru Dari", "Pemilik Kost"],
@@ -133,18 +157,23 @@ const Home = () => {
           </h2>
           <div className="w-27 h-1 bg-black my-10 ml-15 rounded"></div>
           <div className="flex gap-4 overflow-x-auto justify-center mx-15">
-            {kostDummy.map((kost, i) => (
-              <KostCard key={i} kost={kost} />
-            ))}
+            {kosts.length > 0 ? (
+              kosts.map((kost, index) => (
+                <KostCard key={`${i}-${index}`} kost={kost} />
+              ))
+            ) : (
+              <p className="text-gray-500">Loading data kost...</p>
+            )}
           </div>
         </section>
       ))}
+
 
       {/* Banner */}
       <div className="bg-gray-50 p-21 px-60">
         <div className="bg-gray-100 flex flex-col md:flex-row items-center justify-center rounded-2xl">
           {/* kiri */}
-          <div className="w-170 bg-white">
+          <div className="w-170 pl-20">
             <h3 className="text-6xl font-bold text-black mb-2">Coba Promosikan Kost Anda Sekarang Juga!</h3>
             <p className="text-gray-600 mb-4">Dapatkan kemudahan dalam mempromosikan kost Anda!</p>
             <button className="bg-black text-white px-4 py-2 w-50 h-10 rounded-full">Jadi Pemilik Kost</button>

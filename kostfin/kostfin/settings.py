@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "Admin",
     "pemilik",
     "pencari",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "kostfin.urls"
@@ -132,3 +134,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ]
 }
+
+CORS_ALLOW_ALL_ORIGINS = True 

@@ -3,17 +3,17 @@ from .models import PemilikKost, Kost, KostImage;
 
 class PemilikKostSerializers(serializers.ModelSerializer):
     class Meta:
-        mdoel = PemilikKost;
+        model = PemilikKost;
         fields = '__all__';
 
 class KostImageSerializers(serializers.ModelSerializer):
     class Meta:
-        mdoel = KostImage;
+        model = KostImage;
         fields = '__all__';
 
 class KostSerializers(serializers.ModelSerializer):
     gambar_kost = KostImageSerializers(many=True, read_only=True);
     
     class Meta:
-        mdoel = Kost;
+        model = Kost;
         fields = '__all__';
