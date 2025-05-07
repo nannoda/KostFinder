@@ -39,7 +39,7 @@ const Home = () => {
       <div className="relative w-full h-200">
         {/* Gambar banner */}
         <img
-          src="/sample-banner.jpg"
+          src="banner/top-banner.jpg"
           className="w-full h-full object-cover rounded"
           alt="Banner"
         />
@@ -140,14 +140,20 @@ const Home = () => {
         </section>
       ))}
 
-      {/* Promo Banner */}
-      <div className="p-8 bg-gray-100 flex flex-col items-center text-center">
-        <h3 className="text-xl font-bold mb-2">Coba Promosikan Kost Anda Sekarang Juga!</h3>
-        <p className="text-gray-600 mb-4">Dapatkan kemudahan dalam mempromosikan kost Anda!</p>
-        <button className="bg-black text-white px-4 py-2 rounded">Jadi Pemilik Kost</button>
-        <div className="mt-6 text-4xl text-gray-300 font-bold">BANNER</div>
-      </div>
+      {/* Banner */}
+      <div className="bg-gray-50 p-21 px-60">
+        <div className="bg-gray-100 flex flex-col md:flex-row items-center justify-center rounded-2xl">
+          {/* kiri */}
+          <div className="w-170 bg-white">
+            <h3 className="text-6xl font-bold text-black mb-2">Coba Promosikan Kost Anda Sekarang Juga!</h3>
+            <p className="text-gray-600 mb-4">Dapatkan kemudahan dalam mempromosikan kost Anda!</p>
+            <button className="bg-black text-white px-4 py-2 w-50 h-10 rounded-full">Jadi Pemilik Kost</button>
+          </div>
 
+          {/* Gambar di kanan */}
+          <img src="/banner/bottom-banner.png" className="h-150 w-200 object-cover" />
+        </div>
+      </div>
       <Footer />
     </div>
   );
