@@ -7,9 +7,12 @@ from django.utils.safestring import mark_safe
 class PemilikKostAdmin(admin.ModelAdmin):
     list_display = ('id', 'nama', 'no_hp', 'alamat_kost');
 
-@admin.register(Kost)
 class KostAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nama', 'alamat', 'harga', 'fasilitas', 'pemilik', 'admin');
+    list_display = ('nama', 'tipe_kost', 'alamat', 'harga', 'rating', 'created_at')  # tambahkan created_at di sini
+    list_filter = ('tipe_kost', 'rating', 'created_at')
+    search_fields = ('nama', 'alamat')
+
+admin.site.register(Kost, KostAdmin)
 
 class KostImageAdmin(admin.ModelAdmin):
     list_display = ('kost', 'preview_gambar1', 'preview_gambar2', 'preview_gambar3')

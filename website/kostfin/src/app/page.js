@@ -4,8 +4,51 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const Home = () => {
-  const [kosts, setKosts] = useState([]);
+  const [kostTerbaru, setKostTerbaru] = useState([]);
+  const [kostRating, setKostRating] = useState([]);
+  const [kostTerdekat, setKostTerdekat] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
 
+  // Ambil lokasi pengguna
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Gagal mendapatkan lokasi:", error);
+        }
+      );
+    }
+  }, []);
+
+  // Helper
+  const extractLatLngFromUrl = (url) => {
+    const match = url?.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (!match) return null;
+    return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+  };
+
+
+  const haversineDistance = (coord1, coord2) => {
+    const toRad = (value) => (value * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(coord2.lat - coord1.lat);
+    const dLng = toRad(coord2.lng - coord1.lng);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(coord1.lat)) *
+      Math.cos(toRad(coord2.lat)) *
+      Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Fetch data kost
   useEffect(() => {
     const fetchKostData = async () => {
       try {
@@ -18,18 +61,36 @@ const Home = () => {
           price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
           title: kost.nama,
           location: kost.alamat,
+          lokasi: kost.lokasi, // URL Google Maps
           fasility: kost.fasilitas,
-          image: kost.gambar_kost[0]?.gambar1 || null,
+          image: kost.gambar_kost?.[0]?.gambar1 || null,
+          created_at: new Date(kost.created_at)
         }));
 
-        setKosts(formatted);
+        setKostTerbaru([...formatted].sort((a, b) => b.created_at - a.created_at).slice(0, 4));
+        setKostRating([...formatted].sort((a, b) => b.rating - a.rating).slice(0, 4));
+
+        if (userLocation) {
+          const kostWithDistance = formatted
+            .map((kost) => {
+              const coords = extractLatLngFromUrl(kost.lokasi);
+              if (!coords) return null;
+              const distance = haversineDistance(userLocation, coords);
+              return { ...kost, distance };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 4);
+
+          setKostTerdekat(kostWithDistance);
+        }
       } catch (err) {
         console.error("Failed to fetch kost:", err);
       }
     };
 
     fetchKostData();
-  }, []);
+  }, [userLocation]);
 
 
   const KostCard = ({ kost }) => {
@@ -56,13 +117,6 @@ const Home = () => {
       </div>
     );
   };
-
-
-  const sectionTitles = [
-    ["Terbaru Dari", "Pemilik Kost"],
-    ["Kost Terdekat", "Dengan Lokasi Anda"],
-    ["Kost Dengan", "Rating Tertinggi"]
-  ];
 
   return (
     <div className="font-sans">
@@ -150,17 +204,21 @@ const Home = () => {
       </div>
 
       {/* Section Kost */}
-      {sectionTitles.map((lines, i) => (
+      {[
+        { title: ["Terbaru Dari", "Pemilik Kost"], data: kostTerbaru },
+        { title: ["Kost Terdekat", "Dengan Lokasi Anda"], data: kostTerdekat },
+        { title: ["Kost Dengan", "Rating Tertinggi"], data: kostRating }
+      ].map((section, i) => (
         <section key={i} className="p-6 bg-gray-50 pt-25">
           <h2 className="text-4xl font-bold text-black leading-tight mb-2 ml-15">
-            {lines.map((line, j) => (
+            {section.title.map((line, j) => (
               <div key={j}>{line}</div>
             ))}
           </h2>
           <div className="w-27 h-1 bg-black my-10 ml-15 rounded"></div>
           <div className="flex gap-4 overflow-x-auto justify-center mx-15">
-            {kosts.length > 0 ? (
-              kosts.map((kost, index) => (
+            {section.data.length > 0 ? (
+              section.data.map((kost, index) => (
                 <KostCard key={`${i}-${index}`} kost={kost} />
               ))
             ) : (
@@ -169,7 +227,6 @@ const Home = () => {
           </div>
         </section>
       ))}
-
 
       {/* Banner */}
       <div className="bg-gray-50 p-21 px-60">

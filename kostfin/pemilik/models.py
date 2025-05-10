@@ -20,6 +20,7 @@ class Kost(models.Model):
     pemilik = models.ForeignKey('pemilik.PemilikKost', on_delete=models.CASCADE);
     admin = models.ForeignKey('Admin.Admin', on_delete=models.CASCADE);
     lokasi = models.URLField(max_length=500, help_text="Masukkan URL Google Maps", null=True, blank=True);
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.nama;
