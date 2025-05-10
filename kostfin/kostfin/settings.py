@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "Admin",
     "pemilik",
     "pencari",
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -131,4 +132,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES':[
         'rest_framework.permissions.AllowAny'
     ]
+}
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': True,
+    'DOC_EXPANSION': 'none',
 }

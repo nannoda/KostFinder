@@ -16,12 +16,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-# from django.http import HttpResponse
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework.permissions import IsAdminUser;
+from django.conf import settings
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title = "KostFin API",
+        default_version = 'v1',
+        description = "Dokumentasi API KostFin",
+    ),
+    public = True,
+    permission_classes = [IsAdminUser],
+)
 
 
 urlpatterns = [
-    # path("Admin/", admin.site.urls),
+    path("super/", admin.site.urls),
     path('api/admin/', include('Admin.urls')),
     path('api/pemilik/', include('pemilik.urls')),
     path('api/pencari/', include('pencari.urls')),
+    # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    ]
