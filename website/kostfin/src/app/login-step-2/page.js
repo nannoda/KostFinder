@@ -51,15 +51,16 @@ const LoginStep2 = () => {
         <h2 className="text-2xl font-bold text-left text-black mb-3">Login</h2>
         <hr className="border-t border-gray-300 mb-6" />
 
-        {/* Bagian Profil */}
-        <div className="flex items-center mb-4">
-          <div className="ml-4">
-            <h3 className="text-xl font-bold text-black">
-              Hello, {error ? "User tidak ditemukan" : username}
-            </h3> {/* ✅ Ubah username */}
-            <p className="text-sm text-gray-600 cursor-pointer hover:underline">Not You?</p>
-          </div>
+      {/* Bagian Profil */}
+      <div className="flex items-center mb-4">
+        <img src="/profil/foto_default.png" alt="Profile Picture" className="w-12 h-12 rounded-full border shadow-lg" /> {/* ✅ Foto default */}
+        <div className="ml-4">
+          <h3 className="text-xl font-bold text-black">
+            Hello, {error ? "User tidak ditemukan" : username}
+          </h3>
+          <p className="text-sm text-gray-600 cursor-pointer hover:underline"onClick={() => router.push("/login")}>Not You?</p>
         </div>
+      </div>
 
         {error && <p className="text-red-500 text-sm text-center">{error}</p>} {/* ✅ Tampilkan error jika ada */}
 
@@ -84,16 +85,13 @@ const LoginStep2 = () => {
           </p>
 
           {/* Tombol Continue */}
-          <div className="flex justify-between gap-4">
+          <div className="flex justify-center mt-6">
             <button
               type="submit"
               className="w-1/2 bg-blue-500 text-white py-3 rounded-full text-md font-medium hover:bg-blue-600 transition-all"
             >
               Continue
             </button>
-            <span className="w-1/1 text-md font-bold text-black text-left pl-4 flex items-center">
-              📩 Continue With Email
-            </span>
           </div>
         </form>
       </div>
