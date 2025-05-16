@@ -1,17 +1,47 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import useRouter untuk navigasi
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [phone, setPhone] = useState("");
-  const router = useRouter(); // ✅ Inisialisasi router
+  const [error, setError] = useState("");
+  const [registeredPhones, setRegisteredPhones] = useState([]);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  // ✅ Ambil daftar nomor HP dari backend saat halaman dimuat
+  useEffect(() => {
+    fetch("http://localhost:8000/api/pencari/login/")
+      .then((res) => res.json())
+      .then((data) => setRegisteredPhones(data.map(item => item.no_hp))) // ✅ Simpan daftar nomor HP
+      .catch((error) => console.error("Error:", error));
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Nomor:", phone);
+    setError("");
 
-    // ✅ Redirect ke halaman Login Step 2 setelah klik "Continue"
-    router.push("/login-step-2");
+    if (!registeredPhones.includes(phone)) {
+      setError("Nomor tidak ditemukan, silakan coba lagi!");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/api/pencari/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ no_hp: phone }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("phone", phone); // ✅ Simpan nomor HP sementara
+        router.push("/login-step-2"); // ✅ Redirect ke Login Step 2
+      } else {
+        setError(data.error || "Nomor telepon tidak ditemukan. Silakan coba lagi!");
+      }
+    } catch (error) {
+      setError("Terjadi kesalahan dalam koneksi server.");
+    }
   };
 
   return (
@@ -27,21 +57,23 @@ const LoginPage = () => {
               Phone Number
             </label>
 
-            {/* Input Field dengan Placeholder */}
             <input
               type="tel"
               placeholder="Enter Your Number"
               className="w-full py-3 p-7 pt-5 border rounded-full text-left text-sm font-medium text-black"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              required
             />
           </div>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>} {/* ✅ Tampilkan error jika ada */}
 
           <p className="text-sm text-gray-500">
             We'll call or text you to confirm your number. Standard message and data rates apply.
           </p>
 
-          {/* Tombol Continue dan Continue With Email */}
+          {/* Tombol Continue dan Register */}
           <div className="flex justify-between gap-4">
             <button
               type="submit"
@@ -49,9 +81,12 @@ const LoginPage = () => {
             >
               Continue
             </button>
-            <span className="w-1/1 text-md font-bold text-black text-left pl-4 flex items-center">
-              📩 Continue With Email
-            </span>
+            <button
+              onClick={() => router.push("/register")}
+              className="w-1/2 bg-gray-300 text-black py-3 rounded-full text-md font-medium hover:bg-gray-400 transition-all"
+            >
+              Register
+            </button>
           </div>
         </form>
       </div>

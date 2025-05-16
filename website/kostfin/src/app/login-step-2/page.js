@@ -1,39 +1,67 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import useRouter untuk navigasi
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const LoginStep2 = () => {
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("John Doe"); // ✅ Default jika tidak ditemukan
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+  console.log("🔥 `useEffect` dijalankan!");
+  const phone = localStorage.getItem("phone");
+  console.log("📞 Nomor HP dari `localStorage`:", phone);
+
+  if (!phone) {
+    console.log("❌ Nomor HP kosong, redirect ke login!");
+    router.push("/login");
+    return;
+  }
+
+  console.log("🚀 Memulai fetch untuk username...");
+  
+  fetch(`http://localhost:8000/api/pencari/login?no_hp=${phone}`)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("✅ Response dari backend:", data);
+      if (data.username) {
+        console.log("📌 Username yang diterima:", data.username);
+        setUsername(data.username);  // ✅ Perbarui state username
+      } else {
+        console.log("❌ Username tidak ditemukan!");
+        setError("User tidak ditemukan");  // ✅ Tampilkan pesan error jika username tidak ada
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Error mengambil username:", error);
+    });
+}, []);
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Password:", password);
-
-    // ✅ Redirect ke halaman utama setelah login
-    router.push("/");
+    router.push("/"); // ✅ Redirect ke halaman utama setelah login
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-2xl mx-auto p-12 bg-white rounded-lg shadow-2xl">
-        
-        {/* Bagian Login */}
         <h2 className="text-2xl font-bold text-left text-black mb-3">Login</h2>
-        <hr className="border-t border-gray-300 mb-6" /> {/* ✅ Garis dipindah ke bawah "Login" */}
+        <hr className="border-t border-gray-300 mb-6" />
 
         {/* Bagian Profil */}
         <div className="flex items-center mb-4">
-          <img
-            src="/default-profile.png" // Ganti dengan URL avatar pengguna
-            alt="User Avatar"
-            className="w-12 h-12 rounded-full border"
-          />
           <div className="ml-4">
-            <h3 className="text-xl font-bold text-black">Hello, John Doe</h3>
+            <h3 className="text-xl font-bold text-black">
+              Hello, {error ? "User tidak ditemukan" : username}
+            </h3> {/* ✅ Ubah username */}
             <p className="text-sm text-gray-600 cursor-pointer hover:underline">Not You?</p>
           </div>
         </div>
+
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>} {/* ✅ Tampilkan error jika ada */}
 
         {/* Input Password */}
         <form onSubmit={handleSubmit} className="space-y-6 text-center">
@@ -41,20 +69,21 @@ const LoginStep2 = () => {
             <label className="absolute top-2 left-7 text-xs font-medium text-black">
               Enter Your Password
             </label>
-
-            {/* Input Field untuk Password */}
             <input
               type="password"
               placeholder="Enter Your Password"
               className="w-full py-3 p-7 pt-5 border rounded-full text-left text-sm font-medium text-black"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <p className="text-sm text-blue-600 text-left cursor-pointer hover:underline">Forgot Your Password?</p>
+          <p className="text-sm text-blue-600 text-left cursor-pointer hover:underline">
+            Forgot Your Password?
+          </p>
 
-          {/* Tombol Continue dan Continue With Email */}
+          {/* Tombol Continue */}
           <div className="flex justify-between gap-4">
             <button
               type="submit"

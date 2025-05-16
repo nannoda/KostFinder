@@ -28,6 +28,10 @@ class ReviewRatingViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewRatingSerializer;
     
 class PenghuniRegisterView(APIView):
+    def get(self, request):
+        penghuni_kost = PenghuniKost.objects.all()  # ✅ Gunakan model PenghuniKost
+        serializer = PenghuniRegisterSerializer(penghuni_kost, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     def post(self, request):
         serializer = PenghuniRegisterSerializer(data= request.data);
         if serializer.is_valid():
@@ -36,8 +40,24 @@ class PenghuniRegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST);
 
 class PenghuniLoginView(APIView):
+    def get(self, request):
+        no_hp = request.GET.get("no_hp")  # ✅ Ambil nomor HP dari query string
+        if no_hp:
+            penghuni_kost = PenghuniKost.objects.filter(no_hp=no_hp).first()
+            if penghuni_kost:
+                return Response({"username": penghuni_kost.username}, status=status.HTTP_200_OK)  # ✅ Kembalikan username
+            return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
+
+        penghuni_kost = PenghuniKost.objects.values("no_hp")  # ✅ Ambil semua nomor HP jika query kosong
+        return Response(list(penghuni_kost), status=status.HTTP_200_OK)
+
+
     def post(self, request):
-        serializer = PenghuniLoginSerializer(data=request.data);
-        if serializer.is_valid():
-            return Response({"message": "Login pencari berhasil", "data": serializer.validated_data});
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST);
+        no_hp = request.data.get("no_hp")  # ✅ Ambil nomor dari request
+        if not no_hp:
+            return Response({"error": "Nomor telepon diperlukan"}, status=status.HTTP_400_BAD_REQUEST)
+
+        penghuni_kost = PenghuniKost.objects.filter(no_hp=no_hp).first()  # ✅ Cek apakah nomor ada di database
+        if penghuni_kost:
+            return Response({"message": "Nomor ditemukan, lanjut ke login step 2"}, status=status.HTTP_200_OK)
+        return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)

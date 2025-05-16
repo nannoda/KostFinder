@@ -32,9 +32,9 @@ class PenghuniRegisterSerializer(serializers.ModelSerializer):
         model = PenghuniKost;
         fields = "__all__";
         
-        def create(self, validated_data):
-            validated_data['password'] = make_password(validated_data['password']);
-            return PenghuniKost.objects.create(**validated_data);
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password']);
+        return PenghuniKost.objects.create(**validated_data);
         
 class PenghuniLoginSerializer(serializers.Serializer):
         username = serializers.CharField();
