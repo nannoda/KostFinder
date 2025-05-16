@@ -28,6 +28,7 @@ class ReviewRatingSerializer(serializers.ModelSerializer):
         fields = "__all__";
         
 class PenghuniRegisterSerializer(serializers.ModelSerializer):
+    no_hp = serializers.CharField()
     class Meta :
         model = PenghuniKost;
         fields = "__all__";
