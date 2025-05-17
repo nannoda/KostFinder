@@ -9,35 +9,43 @@ const LoginStep2 = () => {
   const router = useRouter();
 
   useEffect(() => {
-  console.log("🔥 `useEffect` dijalankan!");
-  const phone = localStorage.getItem("phone");
-  console.log("📞 Nomor HP dari `localStorage`:", phone);
+    console.log("🔥 `useEffect` dijalankan!");
+    const phone = localStorage.getItem("phone");
+    console.log("📞 Nomor HP dari `localStorage`:", phone);
 
-  if (!phone) {
-    console.log("❌ Nomor HP kosong, redirect ke login!");
-    router.push("/login");
-    return;
-  }
+    if (!phone) {
+      console.log("❌ Nomor HP kosong, redirect ke login!");
+      router.push("/login");
+      return;
+    }
 
-  console.log("🚀 Memulai fetch untuk username...");
-  
-  fetch(`http://localhost:8000/api/pencari/login?no_hp=${phone}`)
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("✅ Response dari backend:", data);
-      if (data.username) {
-        console.log("📌 Username yang diterima:", data.username);
-        setUsername(data.username);  // ✅ Perbarui state username
-      } else {
-        console.log("❌ Username tidak ditemukan!");
-        setError("User tidak ditemukan");  // ✅ Tampilkan pesan error jika username tidak ada
-      }
-    })
-    .catch((error) => {
-      console.error("❌ Error mengambil username:", error);
-    });
-}, []);
-
+    console.log("🚀 Memulai fetch untuk username...");
+    
+    // ✅ Cek apakah nomor HP milik pemilik atau pencari kost
+    fetch(`http://localhost:8000/api/pemilik/login?no_hp=${phone}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.username) {
+          console.log("📌 Username dari Pemilik Kost:", data.username);
+          setUsername(data.username); // ✅ Ambil data pemilik kost
+        } else {
+          // ✅ Jika tidak ditemukan di Pemilik Kost, coba di Pencari Kost
+          fetch(`http://localhost:8000/api/pencari/login?no_hp=${phone}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.username) {
+                console.log("📌 Username dari Pencari Kost:", data.username);
+                setUsername(data.username);
+              } else {
+                console.log("❌ Username tidak ditemukan!");
+                setError("User tidak ditemukan");
+              }
+            })
+            .catch((error) => console.error("❌ Error mengambil username pencari:", error));
+        }
+      })
+      .catch((error) => console.error("❌ Error mengambil username pemilik:", error));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,18 +59,20 @@ const LoginStep2 = () => {
         <h2 className="text-2xl font-bold text-left text-black mb-3">Login</h2>
         <hr className="border-t border-gray-300 mb-6" />
 
-      {/* Bagian Profil */}
-      <div className="flex items-center mb-4">
-        <img src="/profil/foto_default.png" alt="Profile Picture" className="w-12 h-12 rounded-full border shadow-lg" /> {/* ✅ Foto default */}
-        <div className="ml-4">
-          <h3 className="text-xl font-bold text-black">
-            Hello, {error ? "User tidak ditemukan" : username}
-          </h3>
-          <p className="text-sm text-gray-600 cursor-pointer hover:underline"onClick={() => router.push("/login")}>Not You?</p>
+        {/* Bagian Profil */}
+        <div className="flex items-center mb-4">
+          <img src="/profil/foto_default.png" alt="Profile Picture" className="w-12 h-12 rounded-full border shadow-lg" />
+          <div className="ml-4">
+            <h3 className="text-xl font-bold text-black">
+              Hello, {error ? "User tidak ditemukan" : username}
+            </h3>
+            <p className="text-sm text-gray-600 cursor-pointer hover:underline" onClick={() => router.push("/login")}>
+              Not You?
+            </p>
+          </div>
         </div>
-      </div>
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>} {/* ✅ Tampilkan error jika ada */}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         {/* Input Password */}
         <form onSubmit={handleSubmit} className="space-y-6 text-center">

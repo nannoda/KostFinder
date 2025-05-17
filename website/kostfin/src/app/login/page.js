@@ -5,14 +5,20 @@ import { useRouter } from "next/navigation";
 const LoginPage = () => {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
-  const [registeredPhones, setRegisteredPhones] = useState([]);
+  const [registeredPhonesPemilik, setRegisteredPhonesPemilik] = useState([]); // ✅ Nomor pemilik kost
+  const [registeredPhonesPencari, setRegisteredPhonesPencari] = useState([]); // ✅ Nomor pencari kost
   const router = useRouter();
 
   // ✅ Ambil daftar nomor HP dari backend saat halaman dimuat
   useEffect(() => {
+    fetch("http://localhost:8000/api/pemilik/login/")
+      .then((res) => res.json())
+      .then((data) => setRegisteredPhonesPemilik(data.map(item => item.no_hp))) // ✅ Simpan daftar nomor Pemilik
+      .catch((error) => console.error("Error:", error));
+
     fetch("http://localhost:8000/api/pencari/login/")
       .then((res) => res.json())
-      .then((data) => setRegisteredPhones(data.map(item => item.no_hp))) // ✅ Simpan daftar nomor HP
+      .then((data) => setRegisteredPhonesPencari(data.map(item => item.no_hp))) // ✅ Simpan daftar nomor Pencari
       .catch((error) => console.error("Error:", error));
   }, []);
 
@@ -20,13 +26,19 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
 
-    if (!registeredPhones.includes(phone)) {
+    let apiURL = "";
+
+    if (registeredPhonesPemilik.includes(phone)) {
+      apiURL = "http://localhost:8000/api/pemilik/login/"; // ✅ API Login Pemilik
+    } else if (registeredPhonesPencari.includes(phone)) {
+      apiURL = "http://localhost:8000/api/pencari/login/"; // ✅ API Login Pencari
+    } else {
       setError("Nomor tidak ditemukan, silakan coba lagi!");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/pencari/login/", {
+      const response = await fetch(apiURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ no_hp: phone }),

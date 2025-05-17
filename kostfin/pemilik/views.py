@@ -19,16 +19,39 @@ class KostImageViewSet(viewsets.ModelViewSet):
     serializer_class = KostImageSerializers;
 
 class PemilikRegisterView(APIView):
+    def get(self, request):
+        pemilik_list = PemilikKost.objects.all()  # ✅ Ambil semua pemilik yang terdaftar
+        serializer = PemilikRegisterSerializers(pemilik_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)  # ✅ Kirim daftar pemilik ke frontend
+
     def post(self, request):
-        serializer = PemilikRegisterSerializers(data=request.data);
+        serializer = PemilikRegisterSerializers(data=request.data)
         if serializer.is_valid():
-            serializer.save();
-            return Response({'message':'Pendaftaran berhasil'}, status= status.HTTP_201_CREATED);
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST);
+            serializer.save()
+            return Response({'message': 'Pendaftaran berhasil'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
 class PemilikLoginView(APIView):
+    def get(self, request):
+        no_hp = request.GET.get("no_hp")
+
+        if no_hp:
+            pemilik_kost = PemilikKost.objects.filter(no_hp=no_hp).first()
+            if pemilik_kost:
+                return Response({"username": pemilik_kost.username}, status=status.HTTP_200_OK)  # ✅ Kembalikan username pemilik
+            return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
+
+        pemilik_kost = PemilikKost.objects.values("no_hp")
+        return Response(list(pemilik_kost), status=status.HTTP_200_OK)
+
     def post(self, request):
-        serializer = PemilikLoginSerializers(data=request.data);
-        if serializer.is_valid():
-            return Response({"message": "Login berhasil", "data": serializer.validated_data});
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST);
+         no_hp = request.data.get("no_hp")  # ✅ Ambil nomor dari request
+         if not no_hp:
+            return Response({"error": "Nomor telepon diperlukan"}, status=status.HTTP_400_BAD_REQUEST)
+
+         pemilik_kost = PemilikKost.objects.filter(no_hp=no_hp).first()  # ✅ Cek apakah nomor ada di database
+         if pemilik_kost:
+            return Response({"message": "Nomor ditemukan, lanjut ke login step 2"}, status=status.HTTP_200_OK)
+         return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
+

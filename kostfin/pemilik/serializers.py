@@ -1,6 +1,6 @@
 from rest_framework import serializers;
 from .models import PemilikKost, Kost, KostImage;
-from django.contrib.auth.hashers import make_password;
+from django.contrib.auth.hashers import make_password, check_password;
 
 class PemilikKostSerializers(serializers.ModelSerializer):
     class Meta:
@@ -20,9 +20,10 @@ class KostSerializers(serializers.ModelSerializer):
         fields = '__all__';
         
 class PemilikRegisterSerializers(serializers.ModelSerializer):
+    no_hp = serializers.CharField()
     class Meta:
         model = PemilikKost;
-        fields = ['username', 'password', 'nama', 'no_hp', 'alamat'];
+        fields = ['username', 'password', 'nama', 'no_hp', 'alamat_kost'];
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password']);
@@ -38,7 +39,7 @@ class PemilikLoginSerializers(serializers.ModelSerializer):
         except PemilikKost.DoesNotExist:
             raise serializers.ValidationError('Username tidak ditemukan.');
         
-        if pemilik.password != data['password']:
-            raise serializers.ValidationError('Password anda salah');
+        if not check_password(data['password'], pemilik.password):
+            raise serializers.ValidationError("Password salah.");
         
-        return {'id': pemilik.id, 'nama':pemilik.nama};
+        return {'id': pemilik.id, 'nama':pemilik.nama, 'username' : pemilik.username};
