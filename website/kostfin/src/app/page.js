@@ -2,6 +2,11 @@
 import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Heart, Filter } from "lucide-react";
+import { haversineDistance, extractLatLngFromUrl } from "@/utils/helper";
+
+import Link from "next/link";
 
 const Home = () => {
   const [kostTerbaru, setKostTerbaru] = useState([]);
@@ -26,28 +31,6 @@ const Home = () => {
     }
   }, []);
 
-  // Helper
-  const extractLatLngFromUrl = (url) => {
-    const match = url?.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (!match) return null;
-    return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
-  };
-
-
-  const haversineDistance = (coord1, coord2) => {
-    const toRad = (value) => (value * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(coord2.lat - coord1.lat);
-    const dLng = toRad(coord2.lng - coord1.lng);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(coord1.lat)) *
-      Math.cos(toRad(coord2.lat)) *
-      Math.sin(dLng / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
   // Fetch data kost
   useEffect(() => {
     const fetchKostData = async () => {
@@ -56,6 +39,7 @@ const Home = () => {
         const data = await response.json();
 
         const formatted = data.map(kost => ({
+          id: kost.id,
           type: kost.tipe_kost,
           rating: kost.rating,
           price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
@@ -97,24 +81,33 @@ const Home = () => {
     const shortLocation = kost.location.split(',')[2]?.trim() || kost.location;
 
     return (
-      <div className="border rounded-xl p-4 w-90 h-105 bg-white shadow-sm">
-        <div className="flex justify-between text-md mb-2">
-          <span className="font-semibold text-black">{kost.type}</span>
-          <span className="text-gray-500">{kost.rating}</span>
-        </div>
-        <img
-          src={kost.image || "/kost/sample-kost.jpg"}
-          className="h-60 w-full object-cover bg-gray-200 mb-2 rounded"
-          alt={kost.title}
-        />
-        <p className="text-lg font-semibold text-black">
-          {kost.title} {shortLocation && ` ${shortLocation}`}
-        </p>
-        <p className="text-lg text-black">{kost.price}</p>
-        <p className="text-sm text-gray-500 truncate">
-          {kost.fasility.split(',').join(' - ')}
-        </p>
-      </div>
+      <Link href={`/detail-kost/${kost.id}`} className="">
+        <Card className="rounded-xl shadow-sm transition hover:shadow-md cursor-pointer h-full flex flex-col space-y-0">
+          <CardContent className="flex-grow flex flex-col">
+            <div className="flex justify-between items-center text-sm md:text-md text-gray-600 mb-4">
+              <div className="flex items-center">
+                <span className="font-semibold text-black">{kost.type}</span>
+                <span className="text-yellow-500 pl-2 font-semibold">★ {kost.rating.toFixed(1)}</span>
+              </div>
+
+              <Heart className="text-gray-400 hover:text-red-500 cursor-pointer w-5 h-5" />
+            </div>
+
+            <img
+              src={kost.image || "/kost/sample-kost.jpg"}
+              className="h-48 sm:h-56 md:h-60 w-full object-cover bg-gray-200 mb-2 rounded"
+              alt={kost.title}
+            />
+            <CardTitle className="text-base md:text-lg font-semibold text-black">
+              {kost.title} {shortLocation && ` ${shortLocation}`}
+            </CardTitle>
+            <p className="text-sm md:text-base text-black">{kost.price}</p>
+            <CardDescription className="text-xs md:text-sm text-gray-500 truncate">
+              {kost.fasility.split(',').join(' - ')}
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </Link>
     );
   };
 
@@ -127,12 +120,12 @@ const Home = () => {
         {/* Gambar banner */}
         <img
           src="banner/top-banner.jpg"
-          className="w-full h-full object-cover rounded"
+          className="w-full h-full object-cover"
           alt="Banner"
         />
 
         {/* Lapisan hitam transparan */}
-        <div className="absolute inset-0 bg-black opacity-40 rounded"></div>
+        <div className="absolute inset-0 bg-black opacity-40"></div>
 
 
         {/* Teks BANNER di tengah gambar */}
@@ -216,7 +209,7 @@ const Home = () => {
             ))}
           </h2>
           <div className="w-27 h-1 bg-black my-10 ml-15 rounded"></div>
-          <div className="flex gap-4 overflow-x-auto justify-center mx-15">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mx-15">
             {section.data.length > 0 ? (
               section.data.map((kost, index) => (
                 <KostCard key={`${i}-${index}`} kost={kost} />
