@@ -1,15 +1,31 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password;
+from django.core.validators import RegexValidator;
 
 # Create your models here.
 
 class PemilikKost(models.Model):
     nama = models.CharField(max_length=255);
-    no_hp = models.IntegerField();
+    no_hp = models.CharField(
+        max_length=13,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{12,13}$',
+                message="Nomor HP harus terdiri dari 12–13 digit angka."
+            )
+        ]
+    );
     alamat_kost = models.CharField(max_length=255);
+    username = models.CharField(max_length=255, null= False);
+    password = models.CharField(max_length=128, null= False);
     
+    def save(self, *args, **kwargs):
+        if not self.password.startswith('pbkdf2'):
+            self.password = make_password(self.password);
+        super().save(*args, **kwargs);
+        
     def __str__(self):
         return self.nama;
-    
 class Kost(models.Model):
     nama = models.CharField(max_length=255);
     alamat = models.CharField(max_length=255);
