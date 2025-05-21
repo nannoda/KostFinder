@@ -11,4 +11,6 @@ router.register(r'review', ReviewRatingViewSet);
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('register/', PenghuniRegisterView.as_view()),
+    path('login/', PenghuniLoginView.as_view()),
 ];
