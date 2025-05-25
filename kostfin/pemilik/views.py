@@ -4,6 +4,7 @@ from .models import PemilikKost, Kost, KostImage;
 from .serializers import PemilikKostSerializers, KostImageSerializers, KostSerializers, PemilikRegisterSerializers, PemilikLoginSerializers;
 from rest_framework.views import APIView;
 from rest_framework.response import Response
+from rest_framework.generics import RetrieveUpdateAPIView
 # Create your views here.
 
 class PemilikKostViewSet(viewsets.ModelViewSet):
@@ -39,7 +40,7 @@ class PemilikLoginView(APIView):
         if no_hp:
             pemilik_kost = PemilikKost.objects.filter(no_hp=no_hp).first()
             if pemilik_kost:
-                return Response({"username": pemilik_kost.username}, status=status.HTTP_200_OK)  # ✅ Kembalikan username pemilik
+                return Response({"username": pemilik_kost.username, "id" : pemilik_kost.id}, status=status.HTTP_200_OK)  # ✅ Kembalikan username pemilik
             return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
 
         pemilik_kost = PemilikKost.objects.values("no_hp")
@@ -55,3 +56,6 @@ class PemilikLoginView(APIView):
             return Response({"message": "Nomor ditemukan, lanjut ke login step 2"}, status=status.HTTP_200_OK)
          return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
 
+class KostDetailView(RetrieveUpdateAPIView):
+    queryset = Kost.objects.all()
+    serializer_class = KostSerializers

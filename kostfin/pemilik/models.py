@@ -26,6 +26,7 @@ class PemilikKost(models.Model):
         
     def __str__(self):
         return self.nama;
+
 class Kost(models.Model):
     nama = models.CharField(max_length=255);
     alamat = models.CharField(max_length=255);
@@ -34,9 +35,13 @@ class Kost(models.Model):
     tipe_kost = models.CharField(max_length=255, choices=[('Putra', 'Putra'), ('Putri', 'Putri'), ('Campur', 'Campur')], default='Putra')
     rating = models.FloatField(default=0.0);
     pemilik = models.ForeignKey('pemilik.PemilikKost', on_delete=models.CASCADE);
-    admin = models.ForeignKey('Admin.Admin', on_delete=models.CASCADE);
+    admin = models.ForeignKey('Admin.Admin', on_delete=models.CASCADE, default=1);
     lokasi = models.URLField(max_length=500, help_text="Masukkan URL Google Maps", null=True, blank=True);
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[("pending", "Pending"), ("disetujui", "Disetujui"), ("ditolak", "Ditolak")],
+        default="pending")
     
     def __str__(self):
         return self.nama;

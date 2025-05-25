@@ -4,53 +4,58 @@ import { useRouter } from "next/navigation";
 
 const LoginStep2 = () => {
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("John Doe"); // ✅ Default jika tidak ditemukan
+  const [username, setUsername] = useState("John Doe");
   const [error, setError] = useState("");
+  const [userRole, setUserRole] = useState(""); // 🔧 Tambahkan role
   const router = useRouter();
+  const [userid, setUserid] = useState("");
 
   useEffect(() => {
-    console.log("🔥 `useEffect` dijalankan!");
     const phone = localStorage.getItem("phone");
-    console.log("📞 Nomor HP dari `localStorage`:", phone);
 
     if (!phone) {
-      console.log("❌ Nomor HP kosong, redirect ke login!");
       router.push("/login");
       return;
     }
 
-    console.log("🚀 Memulai fetch untuk username...");
-    
-    // ✅ Cek apakah nomor HP milik pemilik atau pencari kost
+    // 🔍 Cek sebagai Pemilik
     fetch(`http://localhost:8000/api/pemilik/login?no_hp=${phone}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.username) {
-          console.log("📌 Username dari Pemilik Kost:", data.username);
-          setUsername(data.username); // ✅ Ambil data pemilik kost
+          setUsername(data.username);
+          setUserRole("pemilik");
+          localStorage.setItem("user_id", data.id);
+          console.log("User ID:", data.id);
+          console.log(localStorage.getItem("user_id"));
         } else {
-          // ✅ Jika tidak ditemukan di Pemilik Kost, coba di Pencari Kost
+          // 🔍 Jika bukan pemilik, cek sebagai pencari
           fetch(`http://localhost:8000/api/pencari/login?no_hp=${phone}`)
             .then((res) => res.json())
             .then((data) => {
               if (data.username) {
-                console.log("📌 Username dari Pencari Kost:", data.username);
                 setUsername(data.username);
+                setUserRole("pencari"); // ✅ Role pencari
               } else {
-                console.log("❌ Username tidak ditemukan!");
                 setError("User tidak ditemukan");
               }
             })
-            .catch((error) => console.error("❌ Error mengambil username pencari:", error));
+            .catch((error) => console.error("❌ Error pencari:", error));
         }
       })
-      .catch((error) => console.error("❌ Error mengambil username pemilik:", error));
+      .catch((error) => console.error("❌ Error pemilik:", error));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Password:", password);
-    router.push("/"); // ✅ Redirect ke halaman utama setelah login
+
+    if (userRole === "pemilik") {
+      router.push("/dashboard/pemilik/"); // ✅ Redirect ke dashboard pemilik
+    } else if (userRole === "pencari") {
+      router.push("/"); // ✅ Atau redirect ke halaman utama pencari
+    } else {
+      setError("Gagal login. Silakan coba lagi.");
+    }
   };
 
   return (
@@ -61,22 +66,31 @@ const LoginStep2 = () => {
 
         {/* Bagian Profil */}
         <div className="flex items-center mb-4">
-          <img src="/profil/foto_default.png" alt="Profile Picture" className="w-12 h-12 rounded-full border shadow-lg" />
+          <img
+            src="/profil/foto_default.png"
+            alt="Profile Picture"
+            className="w-12 h-12 rounded-full border shadow-lg"
+          />
           <div className="ml-4">
             <h3 className="text-xl font-bold text-black">
               Hello, {error ? "User tidak ditemukan" : username}
             </h3>
-            <p className="text-sm text-gray-600 cursor-pointer hover:underline" onClick={() => router.push("/login")}>
+            <p
+              className="text-sm text-gray-600 cursor-pointer hover:underline"
+              onClick={() => router.push("/login")}
+            >
               Not You?
             </p>
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+        )}
 
         {/* Input Password */}
         <form onSubmit={handleSubmit} className="space-y-6 text-center">
-          <div className="relative w-[100%] mx-auto">
+          <div className="relative w-full mx-auto">
             <label className="absolute top-2 left-7 text-xs font-medium text-black">
               Enter Your Password
             </label>
