@@ -4,6 +4,7 @@ from .models import *;
 from .serializers import *;
 from rest_framework.views import APIView;
 from rest_framework.response import Response;
+from rest_framework.decorators import api_view
 
 # Create your views here.
 
@@ -16,9 +17,17 @@ class NotifikasiViewSet(viewsets.ModelViewSet):
     serializer_class = NotifikasiSerializer;
 
 class BookingViewSet(viewsets.ModelViewSet):
-    queryset = Booking.objects.all();
-    serializer_class = BookingSerializer;
+    serializer_class = BookingSerializer
 
+    def get_queryset(self):
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            return Booking.objects.all()
+        
+        pemilik_id = self.request.query_params.get('pemilik_id')
+        if pemilik_id is not None:
+            return Booking.objects.filter(kost__pemilik__id=pemilik_id)
+        return Booking.objects.none()
+    
 class PembayaranViewSet(viewsets.ModelViewSet):
     queryset = Pembayaran.objects.all();
     serializer_class = Pembayaranserializers;
@@ -45,7 +54,7 @@ class PenghuniLoginView(APIView):
         if no_hp:
             penghuni_kost = PenghuniKost.objects.filter(no_hp=no_hp).first()
             if penghuni_kost:
-                return Response({"username": penghuni_kost.username}, status=status.HTTP_200_OK)  # ✅ Kembalikan username
+                return Response({"username": penghuni_kost.username, "id" : penghuni_kost.id}, status=status.HTTP_200_OK)  # ✅ Kembalikan username
             return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
 
         penghuni_kost = PenghuniKost.objects.values("no_hp")  # ✅ Ambil semua nomor HP jika query kosong
@@ -61,3 +70,11 @@ class PenghuniLoginView(APIView):
         if penghuni_kost:
             return Response({"message": "Nomor ditemukan, lanjut ke login step 2"}, status=status.HTTP_200_OK)
         return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+def buat_booking(request):
+    serializer = BookingSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)

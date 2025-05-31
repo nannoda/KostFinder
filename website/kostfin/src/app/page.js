@@ -38,18 +38,20 @@ const Home = () => {
         const response = await fetch("http://127.0.0.1:8000/api/pemilik/kost/");
         const data = await response.json();
 
-        const formatted = data.map(kost => ({
-          id: kost.id,
-          type: kost.tipe_kost,
-          rating: kost.rating,
-          price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
-          title: kost.nama,
-          location: kost.alamat,
-          lokasi: kost.lokasi, // URL Google Maps
-          fasility: kost.fasilitas,
-          image: kost.gambar_kost?.[0]?.gambar1 || null,
-          created_at: new Date(kost.created_at)
-        }));
+        const formatted = data
+          .filter(kost => kost.status === "disetujui" && kost.status_booking === "tersedia")
+          .map(kost => ({
+            id: kost.id,
+            type: kost.tipe_kost,
+            rating: kost.rating,
+            price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
+            title: kost.nama,
+            location: kost.alamat,
+            lokasi: kost.lokasi, // URL Google Maps
+            fasility: kost.fasilitas,
+            image: kost.gambar_kost?.[0]?.gambar1 || null,
+            created_at: new Date(kost.created_at)
+          }));
 
         setKostTerbaru([...formatted].sort((a, b) => b.created_at - a.created_at).slice(0, 4));
         setKostRating([...formatted].sort((a, b) => b.rating - a.rating).slice(0, 4));

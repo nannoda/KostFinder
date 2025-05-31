@@ -43,6 +43,11 @@ class Kost(models.Model):
         choices=[("pending", "Pending"), ("disetujui", "Disetujui"), ("ditolak", "Ditolak")],
         default="pending")
     
+    status_booking = models.CharField(
+        max_length=20,
+        choices=[("tidak tersedia", "Tidak Tersedia"), ("tersedia", "Tersedia"), ("pending", "Pending")],
+        default="tersedia")
+    
     def __str__(self):
         return self.nama;
     

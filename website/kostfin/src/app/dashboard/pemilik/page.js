@@ -1,4 +1,46 @@
+"use client";
+import { useEffect, useState } from "react";
+
 export default function PemilikDashboard() {
+    const [bookings, setBookings] = useState([]);
+
+    const fetchBookings = async () => {
+        const pemilik_id = localStorage.getItem("user_id");
+        const res = await fetch(`http://localhost:8000/api/pencari/booking?pemilik_id=${pemilik_id}`);
+        const data = await res.json();
+        console.log("ID Pemilik:", pemilik_id);
+
+        const pendingBooking = data.filter(booking => booking.status_booking === "pending");
+
+        console.log("Pending Bookings:", pendingBooking);
+        setBookings(pendingBooking);
+    };
+
+    const updateStatus = async (id, kost_id, status) => {
+        // 1. Update status_booking
+        await fetch(`http://localhost:8000/api/pencari/booking/${id}/`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status_booking: status }),
+        });
+
+        // 2. Jika disetujui, ubah kost jadi tidak tersedia
+        if (status === "disetujui") {
+            await fetch(`http://localhost:8000/api/pemilik/kost/${kost_id}/`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status_booking: "tidak tersedia" }),
+            });
+        }
+
+        // Refresh data
+        await fetchBookings();
+    };
+
+    useEffect(() => {
+        fetchBookings();
+    }, []);
+
     return (
         <section className="p-6">
             <div className="grid grid-cols-4 gap-4 mb-6">
@@ -16,7 +58,6 @@ export default function PemilikDashboard() {
                 ))}
             </div>
 
-            {/* Booking Masuk */}
             <div className="bg-white rounded shadow overflow-x-auto mb-10">
                 <h3 className="text-lg font-semibold px-6 py-4 border-b">Permintaan Booking</h3>
                 <table className="min-w-full text-sm">
@@ -30,56 +71,30 @@ export default function PemilikDashboard() {
                         </tr>
                     </thead>
                     <tbody>
-                        {[
-                            { nama: 'Alya', kamar: 'Tipe B', tanggal: '2025-06-01', status: 'Menunggu' },
-                            { nama: 'Rizky', kamar: 'Tipe A', tanggal: '2025-05-25', status: 'Diterima' },
-                        ].map((booking, idx) => (
+                        {bookings.map((booking, idx) => (
                             <tr key={idx} className="border-t">
-                                <td className="p-4">{booking.nama}</td>
-                                <td className="p-4">{booking.kamar}</td>
-                                <td className="p-4">{booking.tanggal}</td>
+                                <td className="p-4">{booking.penghuni_nama}</td>
+                                <td className="p-4">{booking.kost_nama}</td>
+                                <td className="p-4">{booking.tanggal_masuk}</td>
                                 <td className="p-4">
-                                    <span className={`px-2 py-1 text-xs rounded-full 
-                      ${booking.status === 'Diterima'
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                        {booking.status}
+                                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
+                                        {booking.status_booking}
                                     </span>
                                 </td>
-                                <td className="p-4 text-center">
-                                    <button className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600 text-xs">Detail</button>
+                                <td className="p-4 text-center space-x-2">
+                                    <button
+                                        className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                                        onClick={() => updateStatus(booking.id, booking.kost_id, "disetujui")}
+                                    >
+                                        Setuju
+                                    </button>
+                                    <button
+                                        className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                                        onClick={() => updateStatus(booking.id, booking.kost_id, "ditolak")}
+                                    >
+                                        Tolak
+                                    </button>
                                 </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Review Kost */}
-            <div className="bg-white rounded shadow overflow-x-auto">
-                <h3 className="text-lg font-semibold px-6 py-4 border-b">Review Kost</h3>
-                <table className="min-w-full text-sm">
-                    <thead className="bg-gray-100 text-left">
-                        <tr>
-                            <th className="p-4">Pengguna</th>
-                            <th className="p-4">Kost</th>
-                            <th className="p-4">Rating</th>
-                            <th className="p-4">Komentar</th>
-                            <th className="p-4">Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {[
-                            { user: 'Rina', kost: 'Kost Harmoni', rating: 4, komentar: 'Tempat nyaman dan bersih', tanggal: '2025-05-17' },
-                            { user: 'Agus', kost: 'Kost Melati', rating: 5, komentar: 'Sangat puas!', tanggal: '2025-05-14' },
-                        ].map((review, idx) => (
-                            <tr key={idx} className="border-t">
-                                <td className="p-4">{review.user}</td>
-                                <td className="p-4">{review.kost}</td>
-                                <td className="p-4">{'⭐'.repeat(review.rating)}</td>
-                                <td className="p-4">{review.komentar}</td>
-                                <td className="p-4">{review.tanggal}</td>
                             </tr>
                         ))}
                     </tbody>

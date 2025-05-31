@@ -34,8 +34,11 @@ const LoginStep2 = () => {
             .then((res) => res.json())
             .then((data) => {
               if (data.username) {
+                console.log("🔍 Data pencari:", data); // 👈 cek isi objek
                 setUsername(data.username);
-                setUserRole("pencari"); // ✅ Role pencari
+                setUserRole("pencari");
+                localStorage.setItem("user_id", data.id); // ✅ Set user_id
+                console.log("User ID (pencari):", data.id);
               } else {
                 setError("User tidak ditemukan");
               }

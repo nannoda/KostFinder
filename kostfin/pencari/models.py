@@ -27,14 +27,18 @@ class PenghuniKost(models.Model):
         return self.nama;
     
 class Booking(models.Model):
-    kost = models.ForeignKey('pemilik.kost', on_delete=models.CASCADE);
-    penghuni = models.ForeignKey('pencari.PenghuniKost', on_delete=models.CASCADE);
-    status_booking = models.IntegerField();
-    tanggal_booking = models.DateField();
-    metode_pembayaran = models.CharField(max_length=255);
-    
+    kost = models.ForeignKey('pemilik.Kost', on_delete=models.CASCADE)
+    penghuni = models.ForeignKey('pencari.PenghuniKost', on_delete=models.CASCADE)
+    status_booking = models.CharField(
+        max_length=20,
+        choices=[("pending", "Pending"), ("disetujui", "Disetujui"), ("ditolak", "Ditolak")],
+        default="pending")
+    tanggal_booking = models.DateField(auto_now_add=True)
+    tanggal_masuk = models.DateField(default=None, null=True, blank=True)
+
     def __str__(self):
-        return f"{self.penghuni.nama} - {self.kost.nama}";
+        return f"{self.penghuni.nama} - {self.kost.nama} ({self.get_status_booking_display()})"
+
     
 class Pembayaran(models.Model):
     booking = models.ForeignKey("pencari.Booking", on_delete=models.CASCADE);

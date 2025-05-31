@@ -13,9 +13,13 @@ class NotifikasiSerializer(serializers.ModelSerializer):
         fields = "__all__";
 
 class BookingSerializer(serializers.ModelSerializer):
+    kost_id = serializers.IntegerField(source='kost.id', read_only=True)
+    kost_nama = serializers.CharField(source='kost.nama', read_only=True) 
+    penghuni_nama = serializers.CharField(source='penghuni.nama', read_only=True)
+    
     class Meta:
-        model = Booking;
-        fields = "__all__";
+        model = Booking
+        fields = '__all__'
         
 class Pembayaranserializers(serializers.ModelSerializer):
     class Meta:
