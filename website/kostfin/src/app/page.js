@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Heart, Filter } from "lucide-react";
 import { haversineDistance, extractLatLngFromUrl } from "@/utils/helper";
+import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 
@@ -13,6 +14,11 @@ const Home = () => {
   const [kostRating, setKostRating] = useState([]);
   const [kostTerdekat, setKostTerdekat] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
+  const [lokasi, setLokasi] = useState("");
+  const [fasilitas, setFasilitas] = useState("");
+  const [jenisKost, setJenisKost] = useState("");
+  const [rating, setRating] = useState("");
+
 
   // Ambil lokasi pengguna
   useEffect(() => {
@@ -113,6 +119,20 @@ const Home = () => {
     );
   };
 
+  const router = useRouter();
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+
+    if (lokasi) params.append("lokasi", lokasi);
+    if (fasilitas) params.append("fasilitas", fasilitas);
+    if (jenisKost) params.append("jenis", jenisKost);
+    if (rating) params.append("rating", rating);
+
+    router.push(`/list-kost?${params.toString()}`);
+  };
+
   return (
     <div className="font-sans">
       <Header />
@@ -152,6 +172,8 @@ const Home = () => {
                 type="text"
                 placeholder="Masukan lokasi"
                 className="outline-none text-gray-400 placeholder-gray-400 bg-transparent"
+                value={lokasi}
+                onChange={(e) => setLokasi(e.target.value)}
               />
             </div>
 
@@ -162,13 +184,19 @@ const Home = () => {
                 type="text"
                 placeholder="Pilih Fasilitas"
                 className="outline-none text-gray-400 placeholder-gray-400 bg-transparent"
+                value={fasilitas}
+                onChange={(e) => setFasilitas(e.target.value)}
               />
             </div>
 
             {/* Jenis Kost */}
             <div className="px-4 border-l flex flex-col">
               <label className="font-semibold mb-1">Jenis Kost</label>
-              <select className="outline-none text-gray-400 bg-transparent">
+              <select
+                className="outline-none text-gray-400 bg-transparent"
+                value={jenisKost}
+                onChange={(e) => setJenisKost(e.target.value)}
+              >
                 <option value="">Pilih Jenis Kost</option>
                 <option value="putra">Putra</option>
                 <option value="putri">Putri</option>
@@ -185,12 +213,17 @@ const Home = () => {
                 className="outline-none text-gray-400 placeholder-gray-400 bg-transparent w-27"
                 min="1"
                 max="5"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
               />
             </div>
           </form>
 
           {/* Search Button */}
-          <button className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-white">
+          <button
+            onClick={handleSearch}
+            className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-white"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
             </svg>
