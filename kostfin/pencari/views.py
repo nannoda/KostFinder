@@ -5,6 +5,8 @@ from .serializers import *;
 from rest_framework.views import APIView;
 from rest_framework.response import Response;
 from rest_framework.decorators import api_view
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 
@@ -27,6 +29,53 @@ class BookingViewSet(viewsets.ModelViewSet):
         if pemilik_id is not None:
             return Booking.objects.filter(kost__pemilik__id=pemilik_id)
         return Booking.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        booking = Booking.objects.get(pk=response.data['id'])
+
+        # Kirim email ke pemilik kost
+        pemilik_email = booking.kost.pemilik.email
+        send_mail(
+            subject='Ada Booking Baru untuk Kost Anda',
+            message=(
+                f"Nama Kost: {booking.kost.nama}\n"
+                f"Pemesan: {booking.penghuni.nama}\n"
+                f"Tanggal Masuk: {booking.tanggal_masuk}\n\n"
+                "Silakan tinjau permintaan booking ini."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[pemilik_email],
+            fail_silently=True,
+        )
+
+        return response
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_status = instance.status_booking
+
+        response = super().update(request, *args, **kwargs)
+        instance.refresh_from_db()
+        new_status = instance.status_booking
+
+        # Jika status booking berubah dari pending ke disetujui/ditolak, kirim email ke pencari
+        if old_status != new_status and new_status in ['disetujui', 'ditolak']:
+            penghuni_email = instance.penghuni.email
+            status_pesan = "disetujui" if new_status == "disetujui" else "ditolak"
+            send_mail(
+                subject='Status Booking Anda Telah Diperbarui',
+                message=(
+                    f"Hallo {instance.penghuni.nama},\n\n"
+                    f"Booking Anda untuk kost '{instance.kost.nama}' telah {status_pesan} oleh pemilik.\n\n"
+                    f"Terima kasih telah menggunakan aplikasi kami!"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[penghuni_email],
+                fail_silently=True,
+            )
+
+        return response
     
 class PembayaranViewSet(viewsets.ModelViewSet):
     queryset = Pembayaran.objects.all();
