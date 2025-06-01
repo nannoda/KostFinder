@@ -14,6 +14,11 @@ const DetailKost = () => {
     const [tanggalMasuk, setTanggalMasuk] = useState("");
     const [feedbackMessage, setFeedbackMessage] = useState("");
     const [user, setUser] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [komentar, setKomentar] = useState("");
+    const [rating, setRating] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
 
     useEffect(() => {
         const fetchKost = async () => {
@@ -67,28 +72,30 @@ const DetailKost = () => {
         }
     }, [kost]);
 
-    const dummyReviews = [
-        {
-            name: "John Doberman",
-            date: "Mar 12 2020",
-            review: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-            name: "John Doberman",
-            date: "Mar 12 2020",
-            review: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-            name: "John Doberman",
-            date: "Mar 12 2020",
-            review: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-        },
-        {
-            name: "John Doberman",
-            date: "Mar 12 2020",
-            review: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/api/pencari/review/?kost_id=${id}`);
+                const data = await res.json();
+                const acceptedReviews = data.filter(r => r.status === "disetujui");
+                setReviews(acceptedReviews);
+
+                if (acceptedReviews.length > 0) {
+                    const total = acceptedReviews.reduce((sum, r) => sum + r.rating, 0);
+                    const avg = total / acceptedReviews.length;
+                    setAverageRating(avg.toFixed(1));
+                } else {
+                    setAverageRating(0);
+                }
+            } catch (err) {
+                console.error("Gagal memuat review:", err);
+            }
+        };
+
+        if (id) {
+            fetchReviews();
         }
-    ];
+    }, [id]);
 
     if (!kost) return <div className="p-8">Loading...</div>;
 
@@ -218,22 +225,42 @@ const DetailKost = () => {
                         </div>
 
                         <div>
-                            <h2 className="text-2xl font-semibold mb-4">Reviews <span className="text-yellow-500">★ 5.0</span></h2>
+                            <h2 className="text-2xl font-semibold mb-4">
+                                Reviews <span className="text-yellow-500">★ {averageRating}</span>
+                            </h2>
                             <div className="grid grid-cols-2 gap-6">
-                                {dummyReviews.map((review, idx) => (
-                                    <div key={idx} className="flex gap-4">
-                                        <div className="w-20 h-8 rounded-full bg-gray-300"></div>
-                                        <div>
-                                            <p className="font-semibold">{review.name}</p>
-                                            <p className="text-sm text-gray-500 mb-2">{review.date}</p>
-                                            <p className="text-gray-600">{review.review}</p>
+                                {reviews.length === 0 ? (
+                                    <p className="text-gray-500">Belum ada review</p>
+                                ) : (
+                                    reviews.map((review, idx) => (
+                                        <div key={idx} className="flex gap-4">
+                                            <div className="w-8 h-8 rounded-full bg-gray-300"></div>
+                                            <div>
+                                                <p className="font-semibold">{review.penghuni_nama}</p>
+                                                <p className="text-sm text-gray-500 mb-2">{review.tanggal || "Tanggal tidak tersedia"}</p>
+                                                <div className="text-yellow-500">
+                                                    {Array.from({ length: 5 }).map((_, i) => (
+                                                        <span key={i}>{i < review.rating ? '★' : '☆'}</span>
+                                                    ))}
+                                                </div>
+                                                <p className="text-gray-600">{review.komentar}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
                             </div>
                             <div className="mt-6">
-                                <button className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
-                                    Show All {dummyReviews.length} Reviews
+                                <button
+                                    onClick={() => {
+                                        if (!user) {
+                                            window.location.href = "/login";
+                                        } else {
+                                            setIsReviewModalOpen(true);
+                                        }
+                                    }}
+                                    className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-100"
+                                >
+                                    Tambahkan Review
                                 </button>
                             </div>
                         </div>
@@ -318,6 +345,70 @@ const DetailKost = () => {
                     </div>
                 </div>
             )}
+
+            {isReviewModalOpen && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <h2 className="text-xl font-semibold mb-4">Tambahkan Review</h2>
+                        <label className="block mb-1 text-sm">Komentar</label>
+                        <textarea
+                            value={komentar}
+                            onChange={(e) => setKomentar(e.target.value)}
+                            className="w-full border border-gray-300 p-2 rounded mb-4"
+                        />
+                        <label className="block mb-1 text-sm">Rating</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={rating}
+                            onChange={(e) => setRating(Number(e.target.value))}
+                            className="w-full border border-gray-300 p-2 rounded mb-4"
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setIsReviewModalOpen(false)}
+                                className="px-4 py-2 rounded border border-gray-300"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await fetch("http://127.0.0.1:8000/api/pencari/review/", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                admin: 1,
+                                                penghuni: localStorage.getItem("user_id"),
+                                                komentar,
+                                                rating,
+                                                kost: id
+                                            })
+                                        });
+                                        console.log("Review Response:", res);
+                                        if (res.ok) {
+                                            setIsReviewModalOpen(false);
+                                            setKomentar("");
+                                            setRating(0);
+                                            const updatedReviews = await res.json();
+                                            setReviews((prev) => [...prev, updatedReviews]);
+                                        } else {
+                                            alert("Gagal mengirim review.");
+                                        }
+                                    } catch (err) {
+                                        console.error("Error saat kirim review:", err);
+                                    }
+                                }}
+                                className="px-4 py-2 rounded bg-green-600 text-white"
+                            >
+                                Kirim Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

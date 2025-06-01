@@ -20,4 +20,4 @@ class PembayaranAdmin(admin.ModelAdmin):
 
 @admin.register(ReviewRating)
 class ReviewRatingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'admin', 'penghuni', 'komentar', 'rating');
+    list_display = ('id', 'admin', 'penghuni', 'komentar', 'rating', 'status', 'tanggal');

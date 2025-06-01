@@ -13,9 +13,6 @@ from django.conf import settings
 class PemilikKostViewSet(viewsets.ModelViewSet):
     queryset = PemilikKost.objects.all();
     serializer_class = PemilikKostSerializers;
-    
-from django.core.mail import send_mail
-from django.conf import settings
 
 class KostViewSet(viewsets.ModelViewSet):
     queryset = Kost.objects.all()

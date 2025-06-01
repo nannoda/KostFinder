@@ -7,7 +7,7 @@ router.register(r'penghuni', PenghuniKostViewSet);
 router.register(r'notifikasi', NotifikasiViewSet);
 router.register(r'booking', BookingViewSet, basename='booking')
 router.register(r'pembayaran', PembayaranViewSet);
-router.register(r'review', ReviewRatingViewSet);
+router.register(r'review', ReviewRatingViewSet, basename='review');
 
 urlpatterns = [
     path('', include(router.urls)),

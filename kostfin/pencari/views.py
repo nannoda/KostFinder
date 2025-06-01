@@ -82,8 +82,15 @@ class PembayaranViewSet(viewsets.ModelViewSet):
     serializer_class = Pembayaranserializers;
 
 class ReviewRatingViewSet(viewsets.ModelViewSet):
-    queryset = ReviewRating.objects.all();
-    serializer_class = ReviewRatingSerializer;
+    serializer_class = ReviewRatingSerializer
+
+    def get_queryset(self):
+        kost_id = self.request.query_params.get("kost_id")
+        qs = ReviewRating.objects.select_related("kost", "penghuni")
+        if kost_id:
+            return qs.filter(kost_id=kost_id, status="disetujui")
+        return qs.filter(status="pending")
+
     
 class PenghuniRegisterView(APIView):
     def get(self, request):
