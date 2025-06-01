@@ -24,7 +24,7 @@ class PemilikRegisterSerializers(serializers.ModelSerializer):
     no_hp = serializers.CharField()
     class Meta:
         model = PemilikKost;
-        fields = ['username', 'password', 'nama', 'no_hp', 'alamat_kost'];
+        fields = ['username', 'password', 'nama', 'no_hp', 'alamat_kost', 'email'];
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password']);

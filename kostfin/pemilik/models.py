@@ -18,6 +18,7 @@ class PemilikKost(models.Model):
     alamat_kost = models.CharField(max_length=255);
     username = models.CharField(max_length=255, null= False);
     password = models.CharField(max_length=128, null= False);
+    email = models.EmailField(max_length=255, default='');
     
     def save(self, *args, **kwargs):
         if not self.password.startswith('pbkdf2'):

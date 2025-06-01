@@ -150,3 +150,12 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': True,
     'DOC_EXPANSION': 'none',
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'KostFinderofc@gmail.com'
+EMAIL_HOST_PASSWORD = 'bxev zdrn oqbg ptds'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+ADMIN_EMAIL = 'Kostfinderadm@gmail.com'

@@ -5,15 +5,57 @@ from .serializers import PemilikKostSerializers, KostImageSerializers, KostSeria
 from rest_framework.views import APIView;
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveUpdateAPIView
+from django.core.mail import send_mail
+from django.conf import settings
+
 # Create your views here.
 
 class PemilikKostViewSet(viewsets.ModelViewSet):
     queryset = PemilikKost.objects.all();
     serializer_class = PemilikKostSerializers;
     
+from django.core.mail import send_mail
+from django.conf import settings
+
 class KostViewSet(viewsets.ModelViewSet):
-    queryset = Kost.objects.all();
-    serializer_class = KostSerializers;
+    queryset = Kost.objects.all()
+    serializer_class = KostSerializers
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        kost_data = response.data
+
+        # Kirim email ke admin
+        send_mail(
+            subject='Pengajuan Kost Baru Menunggu Persetujuan',
+            message=f"Kost baru telah diajukan:\n\nNama: {kost_data['nama']}\nAlamat: {kost_data['alamat']}\nStatus: {kost_data['status']}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=True,
+        )
+        return response
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_status = instance.status
+
+        response = super().update(request, *args, **kwargs)
+
+        instance.refresh_from_db()
+        new_status = instance.status
+
+        # Jika status berubah dari pending → disetujui, kirim email ke pemilik
+        if old_status != "disetujui" and new_status == "disetujui":
+            send_mail(
+                subject='Kost Anda Telah Disetujui',
+                message=f"Hai {instance.pemilik.nama}, kost Anda '{instance.nama}' telah disetujui oleh admin dan sudah tayang di aplikasi.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[instance.pemilik.email],
+                fail_silently=True,
+            )
+        return response
+
+
 
 class KostImageViewSet(viewsets.ModelViewSet):
     queryset = KostImage.objects.all();
