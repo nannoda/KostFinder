@@ -1,4 +1,11 @@
 import Link from 'next/link';
+import {
+    Home,
+    Building2,
+    Star,
+    CalendarCheck,
+    Settings,
+} from 'lucide-react';
 
 export default function PemilikLayout({ children }) {
     return (
@@ -8,14 +15,44 @@ export default function PemilikLayout({ children }) {
                 <div className="text-2xl font-bold p-4 border-b border-gray-700">
                     KostKu
                 </div>
-                <nav className="flex-1 p-4 space-y-2 text-sm">
-                    <Link href="/dashboard/pemilik" className="block text-white hover:text-indigo-400">Beranda</Link>
-                    <Link href="/dashboard/pemilik/kost" className="block text-white hover:text-indigo-400">Kost Saya</Link>
-                    <Link href="/dashboard/pemilik/review" className="block text-white hover:text-indigo-400">Review</Link>
-                    <Link href="/dashboard/pemilik/booking" className="block text-white hover:text-indigo-400">Booking Masuk</Link>
+                <nav className="flex-1 px-4 py-6 space-y-3 text-sm">
+                    <Link
+                        href="/dashboard/pemilik"
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                    >
+                        <Home className="w-5 h-5" />
+                        Beranda
+                    </Link>
+                    <Link
+                        href="/dashboard/pemilik/kost"
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                    >
+                        <Building2 className="w-5 h-5" />
+                        Kost Saya
+                    </Link>
+                    <Link
+                        href="/dashboard/pemilik/review"
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                    >
+                        <Star className="w-5 h-5" />
+                        Review
+                    </Link>
+                    <Link
+                        href="/dashboard/pemilik/booking"
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                    >
+                        <CalendarCheck className="w-5 h-5" />
+                        Booking Masuk
+                    </Link>
                 </nav>
                 <div className="p-4 border-t border-gray-700 text-sm">
-                    <a href="#" className="text-gray-400 hover:text-white">Pengaturan</a>
+                    <Link
+                        href="#"
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition"
+                    >
+                        <Settings className="w-4 h-4" />
+                        Pengaturan
+                    </Link>
                 </div>
             </aside>
 
@@ -35,9 +72,7 @@ export default function PemilikLayout({ children }) {
                         />
                     </div>
                 </header>
-                <section className="p-6">
-                    {children}
-                </section>
+                <section className="p-6">{children}</section>
             </main>
         </div>
     );

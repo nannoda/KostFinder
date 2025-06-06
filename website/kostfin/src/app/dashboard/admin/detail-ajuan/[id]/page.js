@@ -38,17 +38,17 @@ export default function DetailAjuanPage() {
         }
     };
 
-    if (loading) return <div className="p-6">Memuat...</div>;
-    if (!kost) return <div className="p-6 text-red-500">Data tidak ditemukan</div>;
+    if (loading) return <div className="p-6 text-gray-500">⏳ Memuat detail kost...</div>;
+    if (!kost) return <div className="p-6 text-red-600 font-semibold">❌ Data kost tidak ditemukan</div>;
 
     const gambar = kost.gambar_kost?.[0];
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold mb-6 text-indigo-700">Detail Ajuan Kost</h1>
+            <h1 className="text-3xl font-bold mb-8 text-indigo-700">📄 Detail Ajuan Kost</h1>
 
             {/* Gallery */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
                 {[gambar?.gambar1, gambar?.gambar2, gambar?.gambar3, gambar?.gambar4, gambar?.gambar5]
                     .filter(Boolean)
                     .map((src, idx) => (
@@ -56,53 +56,71 @@ export default function DetailAjuanPage() {
                             key={idx}
                             src={src}
                             alt={`Gambar ${idx + 1}`}
-                            className="w-full h-48 object-cover rounded-lg shadow"
+                            className="w-full h-40 object-cover rounded-xl shadow-md hover:scale-105 transition-transform duration-200"
                         />
                     ))}
+                {(!gambar || Object.values(gambar).every(v => !v)) && (
+                    <div className="col-span-full text-gray-400 italic text-sm">
+                        Tidak ada gambar kost yang tersedia.
+                    </div>
+                )}
             </div>
 
             {/* Detail Info */}
-            <div className="bg-white p-6 rounded shadow mb-6">
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
-                    <div><strong>Nama Kost:</strong> {kost.nama}</div>
-                    <div><strong>Pemilik:</strong> {kost.pemilik_nama}</div>
-                    <div><strong>Alamat:</strong> {kost.alamat}</div>
-                    <div><strong>Harga:</strong> Rp{kost.harga.toLocaleString()}</div>
-                    <div><strong>Tipe Kost:</strong> {kost.tipe_kost}</div>
-                    <div><strong>Fasilitas:</strong> {kost.fasilitas}</div>
-                    <div>
-                        <strong>Tanggal Ajuan:</strong> {new Date(kost.created_at).toLocaleDateString()}
-                    </div>
+            <div className="bg-white p-6 rounded-2xl shadow-lg mb-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-700">📌 Informasi Kost</h2>
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                    <Detail label="Nama Kost" value={kost.nama} />
+                    <Detail label="Pemilik" value={kost.pemilik_nama} />
+                    <Detail label="Alamat" value={kost.alamat} />
+                    <Detail label="Harga" value={`Rp${kost.harga.toLocaleString()}`} />
+                    <Detail label="Tipe Kost" value={kost.tipe_kost} />
+                    <Detail label="Fasilitas" value={kost.fasilitas} />
+                    <Detail
+                        label="Tanggal Ajuan"
+                        value={new Date(kost.created_at).toLocaleDateString()}
+                    />
                 </div>
             </div>
 
             {/* Lokasi */}
-            <div className="mb-6">
-                <a
-                    href={kost.lokasi}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline text-sm"
-                >
-                    📍 Lihat lokasi di Google Maps
-                </a>
-            </div>
+            {kost.lokasi && (
+                <div className="mb-8">
+                    <a
+                        href={kost.lokasi}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-blue-600 text-sm hover:text-blue-800 transition"
+                    >
+                        📍 Lihat lokasi di Google Maps
+                    </a>
+                </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-4">
                 <button
                     onClick={() => handleAction("disetujui")}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded shadow"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition"
                 >
                     ✅ Setujui
                 </button>
                 <button
                     onClick={() => handleAction("ditolak")}
-                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded shadow"
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow transition"
                 >
                     ❌ Tolak
                 </button>
             </div>
+        </div>
+    );
+}
+
+function Detail({ label, value }) {
+    return (
+        <div className="flex flex-col">
+            <span className="text-xs text-gray-400">{label}</span>
+            <span className="font-medium">{value || '-'}</span>
         </div>
     );
 }

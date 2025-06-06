@@ -89,7 +89,7 @@ class ReviewRatingViewSet(viewsets.ModelViewSet):
         qs = ReviewRating.objects.select_related("kost", "penghuni")
         if kost_id:
             return qs.filter(kost_id=kost_id, status="disetujui")
-        return qs.filter(status="pending")
+        return qs
 
     
 class PenghuniRegisterView(APIView):
