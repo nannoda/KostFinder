@@ -29,6 +29,8 @@ class Pembayaranserializers(serializers.ModelSerializer):
 class ReviewRatingSerializer(serializers.ModelSerializer):
     penghuni_nama = serializers.CharField(source='penghuni.nama', read_only=True)
     kost_nama = serializers.CharField(source='kost.nama', read_only=True)
+    kost_pemilik_id = serializers.IntegerField(source="kost.pemilik.id", read_only=True)
+    
     class Meta:
         model = ReviewRating;
         fields = "__all__";

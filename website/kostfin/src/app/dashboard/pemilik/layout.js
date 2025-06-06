@@ -13,46 +13,66 @@ export default function PemilikLayout({ children }) {
             {/* Sidebar */}
             <aside className="w-64 bg-gray-900 text-white flex flex-col">
                 <div className="text-2xl font-bold p-4 border-b border-gray-700">
-                    KostKu
+                    KostFinder
                 </div>
-                <nav className="flex-1 px-4 py-6 space-y-3 text-sm">
-                    <Link
-                        href="/dashboard/pemilik"
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
-                    >
-                        <Home className="w-5 h-5" />
-                        Beranda
-                    </Link>
-                    <Link
-                        href="/dashboard/pemilik/kost"
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
-                    >
-                        <Building2 className="w-5 h-5" />
-                        Kost Saya
-                    </Link>
-                    <Link
-                        href="/dashboard/pemilik/review"
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
-                    >
-                        <Star className="w-5 h-5" />
-                        Review
-                    </Link>
-                    <Link
-                        href="/dashboard/pemilik/booking"
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
-                    >
-                        <CalendarCheck className="w-5 h-5" />
-                        Booking Masuk
-                    </Link>
+                <nav className="flex-1 px-4 py-6 text-sm space-y-6">
+                    {/* === Navigasi Utama === */}
+                    <div>
+                        <div className="space-y-2">
+                            <Link
+                                href="/dashboard/pemilik"
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                            >
+                                <Home className="w-5 h-5" />
+                                Beranda
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* === Manajemen Kost === */}
+                    <div>
+                        <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Manajemen</h3>
+                        <div className="space-y-2">
+                            <Link
+                                href="/dashboard/pemilik/kost"
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                            >
+                                <Building2 className="w-5 h-5" />
+                                Kost Saya
+                            </Link>
+                            <Link
+                                href="/dashboard/pemilik/review"
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                            >
+                                <Star className="w-5 h-5" />
+                                Review
+                            </Link>
+                            <Link
+                                href="/dashboard/pemilik/booking"
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                            >
+                                <CalendarCheck className="w-5 h-5" />
+                                Booking Masuk
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* === Pengaturan === */}
+                    <div>
+                        <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Pengaturan</h3>
+                        <div className="space-y-2">
+                            <Link
+                                href="/dashboard/pemilik/pengaturan"
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
+                            >
+                                <Settings className="w-5 h-5" />
+                                Akun
+                            </Link>
+                        </div>
+                    </div>
                 </nav>
-                <div className="p-4 border-t border-gray-700 text-sm">
-                    <Link
-                        href="#"
-                        className="flex items-center gap-2 text-gray-400 hover:text-white transition"
-                    >
-                        <Settings className="w-4 h-4" />
-                        Pengaturan
-                    </Link>
+                <div className="p-4 border-t border-gray-700 text-sm text-center text-gray-400">
+                    <span className="hover:text-white cursor-pointer">© KostFin</span>
                 </div>
             </aside>
 

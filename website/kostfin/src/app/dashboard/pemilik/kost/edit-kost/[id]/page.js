@@ -81,31 +81,31 @@ export default function EditKost() {
     if (loading) return <div className="p-4">Memuat data...</div>;
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Edit Kost</h1>
-            <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded shadow">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+            <h1 className="text-3xl font-bold mb-8">Edit Kost</h1>
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border">
                 <div>
-                    <label className="block text-sm font-medium">Nama Kost</label>
+                    <label className="block text-sm font-medium mb-1">Nama Kost</label>
                     <input type="text" name="nama" required value={formData.nama} onChange={handleChange}
-                        className="w-full border p-2 rounded" />
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Alamat</label>
+                    <label className="block text-sm font-medium mb-1">Alamat</label>
                     <textarea name="alamat" required value={formData.alamat} onChange={handleChange}
-                        className="w-full border p-2 rounded" />
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium">Harga</label>
+                        <label className="block text-sm font-medium mb-1">Harga</label>
                         <input type="number" name="harga" required value={formData.harga} onChange={handleChange}
-                            className="w-full border p-2 rounded" />
+                            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium">Tipe Kost</label>
+                        <label className="block text-sm font-medium mb-1">Tipe Kost</label>
                         <select name="tipe_kost" value={formData.tipe_kost} onChange={handleChange}
-                            className="w-full border p-2 rounded">
+                            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                             <option value="Putra">Putra</option>
                             <option value="Putri">Putri</option>
                             <option value="Campur">Campur</option>
@@ -114,32 +114,41 @@ export default function EditKost() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Fasilitas</label>
+                    <label className="block text-sm font-medium mb-1">Fasilitas</label>
                     <input type="text" name="fasilitas" value={formData.fasilitas} onChange={handleChange}
-                        className="w-full border p-2 rounded" />
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Link Lokasi Google Maps</label>
+                    <label className="block text-sm font-medium mb-1">Link Lokasi Google Maps</label>
                     <input type="url" name="lokasi" required value={formData.lokasi} onChange={handleChange}
-                        className="w-full border p-2 rounded" />
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Upload Gambar (max 5)</label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <label className="block text-sm font-medium mb-2">Upload Gambar (max 5)</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {[1, 2, 3, 4, 5].map((i) => (
                             <input key={i} type="file" accept="image/*"
                                 name={`gambar${i}`} onChange={handleChange}
-                                className="border p-2 rounded" />
+                                className="border p-2 rounded-lg w-full file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200" />
                         ))}
                     </div>
                 </div>
 
-                <div className="pt-4">
-                    <button type="submit"
-                        className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Simpan Kost
+                <div className="pt-4 flex flex-col md:flex-row gap-4 justify-end">
+                    <button
+                        type="button"
+                        onClick={() => router.push("/dashboard/pemilik/kost")}
+                        className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded-lg shadow transition-all duration-200"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="submit"
+                        className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2 rounded-lg shadow transition-all duration-200"
+                    >
+                        Simpan Perubahan
                     </button>
                 </div>
             </form>
