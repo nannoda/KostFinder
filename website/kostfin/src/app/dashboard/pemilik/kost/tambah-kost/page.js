@@ -9,6 +9,7 @@ export default function TambahKost() {
         alamat: "",
         harga: "",
         fasilitas: "",
+        deskripsi: "",
         tipe_kost: "Putra",
         lokasi: "",
         pemilik: "", // diset nanti
@@ -41,31 +42,66 @@ export default function TambahKost() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const body = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value) body.append(key, value);
-        });
-
         try {
-            const res = await fetch("http://localhost:8000/api/pemilik/kost/", {
+            // Step 1: Submit kost data
+            const kostBody = new FormData();
+            kostBody.append("nama", formData.nama);
+            kostBody.append("alamat", formData.alamat);
+            kostBody.append("harga", formData.harga);
+            kostBody.append("fasilitas", formData.fasilitas);
+            kostBody.append("deskripsi", formData.deskripsi);
+            kostBody.append("tipe_kost", formData.tipe_kost);
+            kostBody.append("lokasi", formData.lokasi);
+            kostBody.append("pemilik", formData.pemilik);
+
+            const kostRes = await fetch("http://localhost:8000/api/pemilik/kost/", {
                 method: "POST",
-                body,
+                body: kostBody,
             });
 
-            const result = await res.json();
-            console.log("Server response:", result);
+            const kostResult = await kostRes.json();
 
-            if (!res.ok) {
-                throw new Error(result.detail || "Gagal menambah kost");
+            if (!kostRes.ok) {
+                throw new Error(kostResult.detail || "Gagal menyimpan data kost.");
+            }
+
+            const kostId = kostResult.id;
+
+            // Step 2: Upload images jika ada
+            const hasImage = formData.gambar1 || formData.gambar2 || formData.gambar3 || formData.gambar4 || formData.gambar5;
+            if (hasImage) {
+                const imageBody = new FormData();
+                imageBody.append("kost", kostId); // foreign key reference
+                for (let i = 1; i <= 5; i++) {
+                    const img = formData[`gambar${i}`];
+                    if (img) {
+                        imageBody.append(`gambar${i}`, img);
+                    }
+                }
+
+                const imgRes = await fetch("http://localhost:8000/api/pemilik/kost-images/", {
+                    method: "POST",
+                    body: imageBody,
+                });
+
+                const imgResult = await imgRes.json();
+
+                if (!imgRes.ok) {
+                    console.warn("Gambar gagal diupload:", imgResult);
+                    alert("Kost berhasil ditambah, tapi upload gambar gagal.");
+                    return router.push("/dashboard/pemilik/kost");
+                }
             }
 
             alert("Kost berhasil ditambahkan!");
             router.push("/dashboard/pemilik/kost");
+
         } catch (error) {
-            console.error(error);
-            alert("Terjadi kesalahan saat menambah kost.");
+            console.error("Error:", error);
+            alert("Terjadi kesalahan saat menyimpan data.");
         }
     };
+
     return (
         <div className="max-w-4xl mx-auto px-6 py-10">
             <h1 className="text-3xl font-bold mb-8">Edit Kost</h1>
@@ -102,6 +138,12 @@ export default function TambahKost() {
                 <div>
                     <label className="block text-sm font-medium mb-1">Fasilitas</label>
                     <input type="text" name="fasilitas" value={formData.fasilitas} onChange={handleChange}
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">Deskripsi</label>
+                    <textarea name="deskripsi" value={formData.deskripsi} onChange={handleChange}
                         className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 </div>
 

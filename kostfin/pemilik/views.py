@@ -55,8 +55,14 @@ class KostViewSet(viewsets.ModelViewSet):
 
 
 class KostImageViewSet(viewsets.ModelViewSet):
-    queryset = KostImage.objects.all();
     serializer_class = KostImageSerializers;
+
+    def get_queryset(self):
+        queryset = KostImage.objects.all()
+        kost_id = self.request.query_params.get('kost_id')
+        if kost_id:
+            queryset = queryset.filter(kost__id=kost_id)
+        return queryset
 
 class PemilikRegisterView(APIView):
     def get(self, request):

@@ -1,19 +1,35 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 export default function KostSaya() {
     const [kostList, setKostList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [tipeFilter, setTipeFilter] = useState("all");
+
+
+
+    const filteredKost = kostList.filter((kost) => {
+        const matchSearch =
+            kost.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            kost.fasilitas.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchStatus = statusFilter === "all" || kost.status === statusFilter;
+        const matchTipe = tipeFilter === "all" || kost.tipe_kost === tipeFilter;
+
+        return matchSearch && matchStatus && matchTipe;
+    });
+
     const itemsPerPage = 6;
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = kostList.slice(indexOfFirstItem, indexOfLastItem);
-
-    const totalPages = Math.ceil(kostList.length / itemsPerPage);
-
+    const totalPages = Math.ceil(filteredKost.length / itemsPerPage);
+    const currentItems = filteredKost.slice(indexOfFirstItem, indexOfLastItem);
 
     useEffect(() => {
         const userId = localStorage.getItem("user_id");
@@ -50,7 +66,62 @@ export default function KostSaya() {
                     Tambah Kost
                 </Button>
             </div>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                <div className="relative w-full md:w-80">
+                    <input
+                        type="text"
+                        placeholder="Cari nama kost atau fasilitas..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                </div>
 
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <Filter className="w-4 h-4" />
+                            Filter
+                        </button>
+                    </PopoverTrigger>
+
+                    <PopoverContent className="w-64 p-4 bg-white rounded-lg shadow-lg border">
+                        <div className="space-y-4 text-sm">
+                            <div>
+                                <label>Status Kost</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="w-full mt-1 border border-gray-300 rounded px-2 py-1"
+                                >
+                                    <option value="all">Semua</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="disetujui">Disetujui</option>
+                                    <option value="ditolak">Ditolak</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>Tipe Kost</label>
+                                <select
+                                    value={tipeFilter}
+                                    onChange={(e) => setTipeFilter(e.target.value)}
+                                    className="w-full mt-1 border border-gray-300 rounded px-2 py-1"
+                                >
+                                    <option value="all">Semua</option>
+                                    <option value="putra">Putra</option>
+                                    <option value="putri">Putri</option>
+                                    <option value="campur">Campur</option>
+                                </select>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
             {loading ? (
                 <p>Loading...</p>
             ) : (

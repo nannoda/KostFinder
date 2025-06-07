@@ -15,6 +15,7 @@ class KostImageSerializers(serializers.ModelSerializer):
 class KostSerializers(serializers.ModelSerializer):
     gambar_kost = KostImageSerializers(many=True, read_only=True);
     pemilik_nama = serializers.CharField(source='pemilik.nama', read_only=True)
+    pemilik_no_hp = serializers.CharField(source='pemilik.no_hp', read_only=True)
     
     class Meta:
         model = Kost;

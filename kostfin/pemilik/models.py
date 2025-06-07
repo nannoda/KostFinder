@@ -33,6 +33,7 @@ class Kost(models.Model):
     alamat = models.CharField(max_length=255);
     harga = models.IntegerField();
     fasilitas = models.CharField(max_length=255);
+    deskripsi = models.TextField(default='Deskripsi belum tersedia');
     tipe_kost = models.CharField(max_length=255, choices=[('Putra', 'Putra'), ('Putri', 'Putri'), ('Campur', 'Campur')], default='Putra')
     rating = models.FloatField(default=0.0);
     pemilik = models.ForeignKey('pemilik.PemilikKost', on_delete=models.CASCADE);

@@ -20,6 +20,22 @@ export default function KostListPage() {
     const [maxPrice, setMaxPrice] = useState("");
     const [sortRating, setSortRating] = useState("none");
     const [userLocation, setUserLocation] = useState(null);
+    const [isFilterInitialized, setIsFilterInitialized] = useState(false);
+    const [isDataReady, setIsDataReady] = useState(false);
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const lokasiParam = searchParams.get("lokasi") || "";
+        const fasilitasParam = searchParams.get("fasilitas") || "";
+        const jenisParam = searchParams.get("jenis") || "all";
+        const ratingParam = searchParams.get("rating") || "";
+
+        setSearchTerm(lokasiParam || fasilitasParam);
+        setFilterType(jenisParam === "" ? "all" : jenisParam);
+        if (ratingParam) setSortRating("desc");
+
+        setIsFilterInitialized(true);
+    }, []);
 
     useEffect(() => {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -52,8 +68,9 @@ export default function KostListPage() {
                         created_at: new Date(kost.created_at),
                     }));
 
-                setKostData(formatted);
                 setAllKostData(formatted);
+                setKostData(formatted);
+                setIsDataReady(true);
             } catch (err) {
                 console.error("Failed to fetch kost:", err);
             }
@@ -63,9 +80,11 @@ export default function KostListPage() {
     }, []);
 
     useEffect(() => {
+        if (!isFilterInitialized || !isDataReady) return;
+
         let result = [...allKostData];
 
-        // Search filter
+        // Search
         if (searchTerm) {
             const keyword = searchTerm.toLowerCase();
             result = result.filter((kost) =>
@@ -74,7 +93,7 @@ export default function KostListPage() {
             );
         }
 
-        // Tipe kost
+        // Filter tipe kost
         if (filterType !== "all") {
             result = result.filter((kost) => kost.type === filterType);
         }
@@ -84,7 +103,7 @@ export default function KostListPage() {
         const max = parseInt(maxPrice) || Infinity;
         result = result.filter((kost) => kost.priceValue >= min && kost.priceValue <= max);
 
-        // Sort rating
+        // Rating
         if (sortRating === "asc") {
             result.sort((a, b) => a.rating - b.rating);
         } else if (sortRating === "desc") {
@@ -92,7 +111,7 @@ export default function KostListPage() {
         }
 
         setKostData(result);
-    }, [searchTerm, filterType, minPrice, maxPrice, sortRating]);
+    }, [searchTerm, filterType, minPrice, maxPrice, sortRating, isFilterInitialized, isDataReady]);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);
@@ -112,8 +131,8 @@ export default function KostListPage() {
         <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1 px-4 md:px-10 py-6">
-                <h2 className="text-2xl font-bold text-black leading-tight mt-10 mb-2 ml-15">Kost List</h2>
-                <div className="w-27 h-1 bg-black mb-5 ml-15 rounded"></div>
+                <h2 className="text-3xl font-bold text-gray-800 ml-4 md:ml-15">Kost Terbaik untuk Anda</h2>
+                <div className="w-24 h-1 bg-black ml-4 md:ml-15 mt-2 mb-8 rounded-full"></div>
 
                 {/* Search & Filter */}
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-6 ml-15">
@@ -127,9 +146,9 @@ export default function KostListPage() {
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button className="flex gap-2 items-center mr-15">
-                                <Filter className="w-4 h-4" />
-                                Filters
+                            <Button className="bg-white border border-gray-300 text-black hover:bg-black hover:text-white transition mr-15">
+                                <Filter className="w-4 h-4 mr-2" />
+                                Filter
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-72 space-y-4 mr-25">
@@ -186,7 +205,7 @@ export default function KostListPage() {
 
                             <Button
                                 variant="outline"
-                                className="w-full"
+                                className="w-full border border-gray-300 text-gray-600 hover:bg-black hover:text-white"
                                 onClick={() => {
                                     setFilterType("all");
                                     setMinPrice("");
@@ -201,11 +220,11 @@ export default function KostListPage() {
                 </div>
 
                 {/* Kost Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-10 mx-15">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mx-4 md:mx-15">
                     {kostData.map((kost, index) => (
                         <div key={index} className="flex flex-col">
                             <Link href={`/detail-kost/${kost.id}`}>
-                                <Card className="relative group overflow-hidden h-70 rounded-xl">
+                                <Card className="relative group overflow-hidden h-72 rounded-2xl shadow-md transition hover:shadow-xl bg-white">
                                     {kost.image ? (
                                         <img
                                             src={kost.image}
@@ -213,28 +232,23 @@ export default function KostListPage() {
                                             className="absolute inset-0 w-full h-full object-cover z-0 group-hover:scale-105 transition-transform duration-300"
                                         />
                                     ) : (
-                                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-0">
-                                            <span className="text-sm text-gray-500">No Image</span>
+                                        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-0">
+                                            <span className="text-sm text-gray-400">No Image</span>
                                         </div>
                                     )}
 
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent z-10" />
 
-                                    <div className="absolute top-2 right-2 z-20 bg-white p-1 rounded-full shadow">
-                                        <Heart className="text-gray-400 hover:text-red-500 cursor-pointer w-5 h-5" />
+                                    <div className="absolute top-3 right-3 z-20 bg-white p-1.5 rounded-full shadow">
+                                        <Heart className="text-gray-400 hover:text-red-500 w-5 h-5" />
                                     </div>
 
-                                    <div className="absolute top-2 left-2 z-20 flex gap-2 text-xs items-center">
-                                        <div className="bg-gray-200 text-black px-2 py-0.5 border border-gray-200 rounded">
-                                            <span className="border-r border-gray-300 pr-2">{kost.type}</span>
-                                            <span className="text-black pl-2 font-semibold">★ {kost.rating.toFixed(1)}</span>
-                                        </div>
+                                    <div className="absolute top-3 left-3 z-20 bg-white/80 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold text-black">
+                                        {kost.type} • ★ {kost.rating.toFixed(1)}
                                     </div>
 
-                                    <div className="absolute bottom-2 left-2 z-20">
-                                        <p className="text-sm font-bold text-white bg-black/50 px-2 py-1 rounded">
-                                            {kost.price}
-                                        </p>
+                                    <div className="absolute bottom-3 left-3 z-20">
+                                        <p className="text-sm font-semibold text-white bg-black/60 px-3 py-1 rounded-lg">{kost.price}</p>
                                     </div>
                                 </Card>
                             </Link>
@@ -246,8 +260,8 @@ export default function KostListPage() {
                         </div>
                     ))}
                 </div>
-            </main>
+            </main >
             <Footer />
-        </div>
+        </div >
     );
 }

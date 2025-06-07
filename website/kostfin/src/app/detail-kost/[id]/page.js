@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { extractLatLngFromUrl } from "@/utils/helper";
+import { Phone } from 'lucide-react';
 
 const DetailKost = () => {
     const { id } = useParams();
@@ -146,35 +147,23 @@ const DetailKost = () => {
                             <p className="text-gray-500">{kost.alamat}</p>
                         </div>
 
-                        <div className="flex gap-4">
-                            <div className="flex-1 bg-gray-100 p-4 rounded-lg text-center">
-                                <p>Kasur</p>
-                            </div>
-                            <div className="flex-1 bg-gray-100 p-4 rounded-lg text-center">
-                                <p>Meja</p>
-                            </div>
-                            <div className="flex-1 bg-gray-100 p-4 rounded-lg text-center">
-                                <p>Lemari</p>
-                            </div>
-                            <div className="flex-1 bg-gray-100 p-4 rounded-lg text-center">
-                                <p>Kamar Mandi</p>
-                            </div>
-                        </div>
+                        <div className="w-full h-0.5 bg-gray-300 mt-2 mb-8 rounded-full"></div>
 
                         <div>
                             <h2 className="text-2xl font-semibold mb-2">Deskripsi Kost</h2>
-                            <p className="text-gray-700">{kost.fasilitas}</p>
+                            <p className="text-gray-700">{kost.deskripsi}</p>
                         </div>
 
                         <div>
-                            <h2 className="text-2xl font-semibold mb-2">Fasilitas Kost</h2>
-                            <ul className="list-disc pl-5 text-gray-700">
-                                <li>Air Bersih</li>
-                                <li>Tempat Bersantai</li>
-                                <li>Parkiran</li>
+                            <h2 className="text-2xl font-semibold mb-2">Fasilitas Kamar</h2>
+                            <ul className="list-disc pl-5 text-gray-700 space-y-1">
+                                {kost.fasilitas
+                                    ?.split(',')
+                                    .map((item, index) => (
+                                        <li key={index}>{item.trim()}</li>
+                                    ))}
                             </ul>
                         </div>
-
                         <div>
                             <h2 className="text-2xl font-semibold mb-2">Lokasi</h2>
                             {kost.lokasi && extractLatLngFromUrl(kost.lokasi) ? (
@@ -283,6 +272,15 @@ const DetailKost = () => {
                             >
                                 Ajukan Booking
                             </button>
+                            <a
+                                href={`https://wa.me/${kost.pemilik_no_hp}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-3 inline-flex items-center justify-center gap-2 w-full py-2 px-4 text-sm font-medium"
+                            >
+                                <Phone className="w-5 h-5" />
+                                Hubungi Pemilik
+                            </a>
                             {feedbackMessage && (
                                 <p className="mt-2 text-sm text-blue-600">{feedbackMessage}</p>
                             )}

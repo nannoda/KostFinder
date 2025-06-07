@@ -12,6 +12,8 @@ export default function EditKost() {
         alamat: "",
         harga: "",
         fasilitas: "",
+        gambar_kost_id: null,
+        deskripsi: "",
         tipe_kost: "Putra",
         lokasi: "",
         pemilik: "",
@@ -25,26 +27,37 @@ export default function EditKost() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch(`http://localhost:8000/api/pemilik/kost/${kostId}/`);
-                const data = await res.json();
+                // Ambil data kost
+                const kostRes = await fetch(`http://localhost:8000/api/pemilik/kost/${kostId}/`);
+                if (!kostRes.ok) throw new Error("Gagal mengambil data kost.");
+                const kostData = await kostRes.json();
+
+                const imgRes = await fetch(`http://localhost:8000/api/pemilik/kost-images/?kost=${kostId}`);
+                if (!imgRes.ok) throw new Error("Gagal mengambil data gambar kost.");
+                const imgData = await imgRes.json();
+
+                const relatedKostImage = imgData.find(img => img.kost === parseInt(kostId)); // Pastikan perbandingan type-safe
+
                 setFormData((prev) => ({
                     ...prev,
-                    ...data,
-                    pemilik: localStorage.getItem("user_id") || data.pemilik,
+                    ...kostData,
+                    pemilik: localStorage.getItem("user_id") || kostData.pemilik,
+                    gambar_kost_id: relatedKostImage ? relatedKostImage.id : null,
                 }));
                 setLoading(false);
             } catch (err) {
                 console.error("Gagal ambil data:", err);
                 setLoading(false);
+                router.push("/dashboard/pemilik/kost");
             }
         };
 
         fetchData();
-    }, [kostId]);
+    }, [kostId, router]);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
-        if (files) {
+        if (files && files[0]) {
             setFormData((prev) => ({ ...prev, [name]: files[0] }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
@@ -54,27 +67,85 @@ export default function EditKost() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const body = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value) body.append(key, value);
-        });
-
         try {
-            const res = await fetch(`http://localhost:8000/api/pemilik/kost/${kostId}/`, {
+            const kostBody = new FormData();
+            kostBody.append("nama", formData.nama);
+            kostBody.append("alamat", formData.alamat);
+            kostBody.append("harga", formData.harga);
+            kostBody.append("fasilitas", formData.fasilitas);
+            kostBody.append("deskripsi", formData.deskripsi);
+            kostBody.append("tipe_kost", formData.tipe_kost);
+            kostBody.append("lokasi", formData.lokasi);
+            kostBody.append("pemilik", formData.pemilik);
+
+            const kostRes = await fetch(`http://localhost:8000/api/pemilik/kost/${kostId}/`, {
                 method: "PATCH",
-                body,
+                body: kostBody,
             });
 
-            const result = await res.json();
-            console.log("Server response:", result);
+            const kostResult = await kostRes.json();
 
-            if (!res.ok) throw new Error(result.detail || "Gagal mengedit kost");
+            if (!kostRes.ok) {
+                throw new Error(kostResult.detail || JSON.stringify(kostResult) || "Gagal menyimpan data kost.");
+            }
+            const imageUpdatePromises = [];
+            const hasNewImage = formData.gambar1 instanceof File ||
+                formData.gambar2 instanceof File ||
+                formData.gambar3 instanceof File ||
+                formData.gambar4 instanceof File ||
+                formData.gambar5 instanceof File;
+
+            if (hasNewImage && formData.gambar_kost_id) {
+                const imageBody = new FormData();
+                for (let i = 1; i <= 5; i++) {
+                    const img = formData[`gambar${i}`];
+                    if (img instanceof File) {
+                        imageBody.append(`gambar${i}`, img);
+                    }
+                }
+                const imgRes = await fetch(`http://localhost:8000/api/pemilik/kost-images/${formData.gambar_kost_id}/`, {
+                    method: "PATCH",
+                    body: imageBody,
+                });
+
+                const imgResult = await imgRes.json();
+
+                if (!imgRes.ok) {
+                    console.warn("Gambar gagal diupload:", imgResult);
+                    alert("Kost berhasil diperbarui, tapi upload gambar gagal.");
+                } else {
+                    console.log("Gambar berhasil diupload/diperbarui:", imgResult);
+                }
+            } else if (hasNewImage && !formData.gambar_kost_id) {
+                const imageBody = new FormData();
+                imageBody.append("kost", kostId);
+                for (let i = 1; i <= 5; i++) {
+                    const img = formData[`gambar${i}`];
+                    if (img instanceof File) {
+                        imageBody.append(`gambar${i}`, img);
+                    }
+                }
+
+                const createImgRes = await fetch("http://localhost:8000/api/pemilik/kost-images/", {
+                    method: "POST",
+                    body: imageBody,
+                });
+                const createImgResult = await createImgRes.json();
+                if (!createImgRes.ok) {
+                    console.warn("Gagal membuat entri gambar baru:", createImgResult);
+                    alert("Kost berhasil diperbarui, tapi gagal membuat entri gambar baru.");
+                } else {
+                    console.log("Entri gambar baru berhasil dibuat:", createImgResult);
+                }
+            }
+
 
             alert("Kost berhasil diperbarui!");
             router.push("/dashboard/pemilik/kost");
+
         } catch (error) {
-            console.error(error);
-            alert("Terjadi kesalahan saat memperbarui kost.");
+            console.error("Error:", error);
+            alert("Terjadi kesalahan saat menyimpan data: " + error.message); // Tampilkan pesan error yang lebih spesifik
         }
     };
 
@@ -117,6 +188,12 @@ export default function EditKost() {
                     <label className="block text-sm font-medium mb-1">Fasilitas</label>
                     <input type="text" name="fasilitas" value={formData.fasilitas} onChange={handleChange}
                         className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">Deskripsi</label>
+                    <textarea name="deskripsi" value={formData.deskripsi} onChange={handleChange}
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none" />
                 </div>
 
                 <div>

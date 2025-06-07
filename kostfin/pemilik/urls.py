@@ -5,7 +5,7 @@ from .views import PemilikKostViewSet, KostViewSet, KostImageViewSet, PemilikReg
 router = DefaultRouter();
 router.register(r'pemilik', PemilikKostViewSet);
 router.register(r'kost', KostViewSet);
-router.register(r'kost-images', KostImageViewSet);
+router.register(r'kost-images', KostImageViewSet, basename='kost-images');
 
 urlpatterns = [
     path('', include(router.urls)),

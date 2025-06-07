@@ -41,23 +41,51 @@ const Home = () => {
   useEffect(() => {
     const fetchKostData = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/pemilik/kost/");
-        const data = await response.json();
+        const [kostRes, reviewRes] = await Promise.all([
+          fetch("http://127.0.0.1:8000/api/pemilik/kost/"),
+          fetch("http://127.0.0.1:8000/api/pencari/review/")
+        ]);
 
-        const formatted = data
+        const kostData = await kostRes.json();
+        const reviewData = await reviewRes.json();
+
+        console.log("Review Data:", reviewData);
+
+
+        // Kelompokkan review berdasarkan kost_id
+        const groupedReviews = {};
+        reviewData.forEach((review) => {
+          if (review.status?.toLowerCase() === "disetujui") {
+            const kostId = review.kost; // <--- ini diganti
+            if (!groupedReviews[kostId]) {
+              groupedReviews[kostId] = [];
+            }
+            groupedReviews[kostId].push(review.rating);
+          }
+        });
+
+        // Format dan hitung rating rata-rata
+        const formatted = kostData
           .filter(kost => kost.status === "disetujui" && kost.status_booking === "tersedia")
-          .map(kost => ({
-            id: kost.id,
-            type: kost.tipe_kost,
-            rating: kost.rating,
-            price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
-            title: kost.nama,
-            location: kost.alamat,
-            lokasi: kost.lokasi, // URL Google Maps
-            fasility: kost.fasilitas,
-            image: kost.gambar_kost?.[0]?.gambar1 || null,
-            created_at: new Date(kost.created_at)
-          }));
+          .map(kost => {
+            const ratings = groupedReviews[kost.id] || [];
+            const averageRating = ratings.length > 0
+              ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)
+              : "0.0";
+
+            return {
+              id: kost.id,
+              type: kost.tipe_kost,
+              rating: parseFloat(averageRating),
+              price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
+              title: kost.nama,
+              location: kost.alamat,
+              lokasi: kost.lokasi,
+              fasility: kost.fasilitas,
+              image: kost.gambar_kost?.[0]?.gambar1 || null,
+              created_at: new Date(kost.created_at)
+            };
+          });
 
         setKostTerbaru([...formatted].sort((a, b) => b.created_at - a.created_at).slice(0, 4));
         setKostRating([...formatted].sort((a, b) => b.rating - a.rating).slice(0, 4));
@@ -77,7 +105,7 @@ const Home = () => {
           setKostTerdekat(kostWithDistance);
         }
       } catch (err) {
-        console.error("Failed to fetch kost:", err);
+        console.error("Failed to fetch kost or reviews:", err);
       }
     };
 
@@ -198,24 +226,24 @@ const Home = () => {
                 onChange={(e) => setJenisKost(e.target.value)}
               >
                 <option value="">Pilih Jenis Kost</option>
-                <option value="putra">Putra</option>
-                <option value="putri">Putri</option>
-                <option value="campur">Campur</option>
+                <option value="Putra">Putra</option>
+                <option value="Putri">Putri</option>
+                <option value="Campur">Campur</option>
               </select>
             </div>
 
             {/* Rating */}
             <div className="px-4 flex border-l flex-col">
               <label className="font-semibold mb-1">Rating</label>
-              <input
-                type="number"
-                placeholder="Masukan Rating"
-                className="outline-none text-gray-400 placeholder-gray-400 bg-transparent w-27"
-                min="1"
-                max="5"
+              <select
+                className="outline-none text-gray-400 bg-transparent w-32"
                 value={rating}
                 onChange={(e) => setRating(e.target.value)}
-              />
+              >
+                <option value="">Tidak diurutkan</option>
+                <option value="desc">Tertinggi</option>
+                <option value="asc">Terendah</option>
+              </select>
             </div>
           </form>
 
@@ -231,11 +259,10 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Section Kost */}
       {[
-        { title: ["Terbaru Dari", "Pemilik Kost"], data: kostTerbaru },
-        { title: ["Kost Terdekat", "Dengan Lokasi Anda"], data: kostTerdekat },
-        { title: ["Kost Dengan", "Rating Tertinggi"], data: kostRating }
+        { title: ["Terbaru Dari", "Pemilik Kost"], data: kostTerbaru, link: "/list-kost?sort=terbaru" },
+        { title: ["Kost Terdekat", "Dengan Lokasi Anda"], data: kostTerdekat, link: "/list-kost?sort=terdekat" },
+        { title: ["Kost Dengan", "Rating Tertinggi"], data: kostRating, link: "/list-kost?rating=desc" }
       ].map((section, i) => (
         <section key={i} className="p-6 bg-gray-50 pt-25">
           <h2 className="text-4xl font-bold text-black leading-tight mb-2 ml-15">
@@ -244,6 +271,7 @@ const Home = () => {
             ))}
           </h2>
           <div className="w-27 h-1 bg-black my-10 ml-15 rounded"></div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mx-15">
             {section.data.length > 0 ? (
               section.data.map((kost, index) => (
@@ -255,6 +283,15 @@ const Home = () => {
           </div>
         </section>
       ))}
+
+      {/* Tombol Tampilkan Semua */}
+      <div className="flex justify-center pt-8 bg-gray-50">
+        <Link href="/list-kost" className="flex items-center">
+          <button className="px-6 py-2 bg-gray-50 text-black border border-black rounded hover:bg-black hover:text-white transition">
+            Tampilkan Semua Kost
+          </button>
+        </Link>
+      </div>
 
       {/* Banner */}
       <div className="bg-gray-50 p-21 px-60">

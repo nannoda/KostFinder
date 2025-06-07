@@ -1,18 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 export default function AkunPencari() {
     const [pencariList, setpencariList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = pencariList.slice(indexOfFirstItem, indexOfLastItem);
-
-    const totalPages = Math.ceil(pencariList.length / itemsPerPage);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         fetch(`http://localhost:8000/api/pencari/penghuni/`)
@@ -27,10 +23,33 @@ export default function AkunPencari() {
             });
     }, []);
 
+    const filteredList = pencariList.filter((pencari) =>
+        pencari.nama.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredList.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredList.length / itemsPerPage);
+
     return (
         <section className="p-6 space-y-6">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Kelola akun</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h1 className="text-2xl font-bold">Kelola Akun</h1>
+
+                <div className="relative w-full sm:w-72">
+                    <input
+                        type="text"
+                        placeholder="Cari nama..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                </div>
             </div>
 
             {loading ? (
