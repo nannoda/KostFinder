@@ -38,7 +38,7 @@ class Kost(models.Model):
     rating = models.FloatField(default=0.0);
     pemilik = models.ForeignKey('pemilik.PemilikKost', on_delete=models.CASCADE);
     admin = models.ForeignKey('Admin.Admin', on_delete=models.CASCADE, default=1);
-    lokasi = models.URLField(max_length=500, help_text="Masukkan URL Google Maps", null=True, blank=True);
+    lokasi = models.URLField(max_length=2000, help_text="Masukkan URL Google Maps", null=True, blank=True);
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20,

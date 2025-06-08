@@ -1,15 +1,14 @@
-// C:\Users\LENOVO\Documents\GitHub\KostFinder\website\kostfin\src\components\Header.jsx
-
 "use client"; // Pastikan ini ada di baris paling atas
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // Ini sudah ada
+import { useRouter, usePathname } from "next/navigation"; // Ini sudah ada
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const router = useRouter(); // Ini sudah ada
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const phone = localStorage.getItem("phone");
@@ -40,14 +39,13 @@ const Header = () => {
                 <p
                   className="p-2 text-red-500 hover:bg-gray-200 cursor-pointer"
                   onClick={() => {
-                    localStorage.removeItem("phone"); // Logout user
-                    // ✅ MODIFIKASI KEMBALI DI SINI
-                    if (router.pathname === '/') { // Jika sedang di halaman home
-                        router.refresh(); // Menggunakan router.refresh() untuk Next.js App Router
+                    localStorage.removeItem("phone");
+                    localStorage.removeItem("user_role");
+                    if (window.location.pathname === '/') {
+                      window.location.reload(); // reload seluruh halaman
                     } else {
-                        router.push('/'); // Arahkan ke home jika di halaman lain
+                      router.push('/');
                     }
-                    // ✅ AKHIR MODIFIKASI
                   }}
                 >
                   Logout

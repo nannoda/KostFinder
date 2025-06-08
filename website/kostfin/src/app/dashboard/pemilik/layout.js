@@ -62,7 +62,7 @@ export default function PemilikLayout({ children }) {
                         <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Pengaturan</h3>
                         <div className="space-y-2">
                             <Link
-                                href="/dashboard/pemilik/pengaturan"
+                                href="/profile"
                                 className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition"
                             >
                                 <Settings className="w-5 h-5" />

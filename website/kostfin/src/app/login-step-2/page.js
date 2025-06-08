@@ -26,6 +26,7 @@ const LoginStep2 = () => {
           setUsername(data.username);
           setUserRole("pemilik");
           localStorage.setItem("user_id", data.id);
+          localStorage.setItem("user_role", "pemilik"); // ✅ Set user_role
           console.log("User ID:", data.id);
           console.log(localStorage.getItem("user_id"));
         } else {
@@ -38,6 +39,7 @@ const LoginStep2 = () => {
                 setUsername(data.username);
                 setUserRole("pencari");
                 localStorage.setItem("user_id", data.id); // ✅ Set user_id
+                localStorage.setItem("user_role", "pencari"); // ✅ Set user_role
                 console.log("User ID (pencari):", data.id);
               } else {
                 setError("User tidak ditemukan");

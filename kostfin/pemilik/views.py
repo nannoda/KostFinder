@@ -85,7 +85,8 @@ class PemilikLoginView(APIView):
         if no_hp:
             pemilik_kost = PemilikKost.objects.filter(no_hp=no_hp).first()
             if pemilik_kost:
-                return Response({"username": pemilik_kost.username, "id" : pemilik_kost.id}, status=status.HTTP_200_OK)  # ✅ Kembalikan username pemilik
+                serializer = PemilikKostSerializers(pemilik_kost)
+                return Response(serializer.data, status=status.HTTP_200_OK)  # ✅ Kembalikan username pemilik
             return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
 
         pemilik_kost = PemilikKost.objects.values("no_hp")

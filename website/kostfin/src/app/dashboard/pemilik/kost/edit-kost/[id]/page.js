@@ -16,6 +16,7 @@ export default function EditKost() {
         deskripsi: "",
         tipe_kost: "Putra",
         lokasi: "",
+        status_booking: "",
         pemilik: "",
         gambar1: null,
         gambar2: null,
@@ -76,6 +77,7 @@ export default function EditKost() {
             kostBody.append("deskripsi", formData.deskripsi);
             kostBody.append("tipe_kost", formData.tipe_kost);
             kostBody.append("lokasi", formData.lokasi);
+            kostBody.append("status_booking", formData.status_booking);
             kostBody.append("pemilik", formData.pemilik);
 
             const kostRes = await fetch(`http://localhost:8000/api/pemilik/kost/${kostId}/`, {
@@ -200,6 +202,15 @@ export default function EditKost() {
                     <label className="block text-sm font-medium mb-1">Link Lokasi Google Maps</label>
                     <input type="url" name="lokasi" required value={formData.lokasi} onChange={handleChange}
                         className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium mb-1">Status Booking</label>
+                    <select name="status_booking" value={formData.status_booking} onChange={handleChange}
+                        className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <option value="tersedia">Tersedia</option>
+                        <option value="tidak tersedia">Tidak Tersedia</option>
+                    </select>
                 </div>
 
                 <div>

@@ -15,6 +15,8 @@ export default function KostSaya() {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [tipeFilter, setTipeFilter] = useState("all");
+    const [reviewData, setReviewData] = useState([]);
+    const [ratingMap, setRatingMap] = useState({});
 
     const filteredKost = kostList.filter((kost) => {
         const matchSearch =
@@ -34,7 +36,8 @@ export default function KostSaya() {
     const currentItems = filteredKost.slice(indexOfFirstItem, indexOfLastItem);
 
     useEffect(() => {
-        fetch(`http://localhost:8000/api/pemilik/kost/`)
+        // Fetch data kost
+        fetch("http://localhost:8000/api/pemilik/kost/")
             .then((res) => res.json())
             .then((data) => {
                 setKostList(data);
@@ -44,6 +47,30 @@ export default function KostSaya() {
                 console.error("Gagal fetch kost:", err);
                 setLoading(false);
             });
+
+        // Fetch review & hitung rata-rata rating (hanya review disetujui)
+        fetch("http://127.0.0.1:8000/api/pencari/review/")
+            .then((res) => res.json())
+            .then((reviews) => {
+                // Hanya review dengan status disetujui
+                const approvedReviews = reviews.filter((r) => r.status === "disetujui");
+                setReviewData(approvedReviews);
+                // Kelompokkan dan hitung rata-rata rating
+                const grouped = {};
+                approvedReviews.forEach((r) => {
+                    if (!grouped[r.kost]) grouped[r.kost] = [];
+                    grouped[r.kost].push(r.rating);
+                });
+
+                const avgMap = {};
+                Object.entries(grouped).forEach(([kostId, ratings]) => {
+                    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                    avgMap[kostId] = avg.toFixed(1);
+                });
+
+                setRatingMap(avgMap);
+            })
+            .catch((err) => console.error("Gagal fetch review:", err));
     }, []);
 
     return (
@@ -142,7 +169,7 @@ export default function KostSaya() {
                                     <td className="p-4 text-sm text-gray-700">
                                         <div className="flex items-center gap-1">
                                             <span className="text-yellow-500 text-base">★</span>
-                                            <span>{kost.rating ?? '-'}</span>
+                                            <span>{ratingMap[kost.id] ?? "-"}</span>
                                         </div>
                                     </td>
                                     <td className="p-4">

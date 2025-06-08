@@ -25,26 +25,34 @@ const EditProfilePage = () => {
     const fetchCurrentProfile = async () => {
       setLoading(true);
       setError(null);
-      const userPhone = localStorage.getItem("phone"); // Mengambil nomor HP dari localStorage
+      const userPhone = localStorage.getItem("phone");
+      const userRole = localStorage.getItem("user_role");
 
-      if (!userPhone) {
-        setError("Nomor HP tidak ditemukan. Silakan login kembali.");
+      if (!userPhone || !userRole) {
+        setError("Informasi login tidak lengkap. Silakan login kembali.");
+        setLoading(false);
+        return;
+      }
+
+      let API_FETCH_URL;
+      if (userRole === "pencari") {
+        API_FETCH_URL = `http://localhost:8000/api/pencari/login/?no_hp=${userPhone}`;
+      } else if (userRole === "pemilik") {
+        API_FETCH_URL = `http://localhost:8000/api/pemilik/login/?no_hp=${userPhone}`;
+      } else {
+        setError("Role pengguna tidak dikenali.");
         setLoading(false);
         return;
       }
 
       try {
-        // Mengambil data profil dari API login (untuk mendapatkan ID dan data awal)
-        const API_FETCH_URL = `http://localhost:8000/api/pencari/login/?no_hp=${userPhone}`;
         const response = await fetch(API_FETCH_URL);
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || `Gagal mengambil data: ${response.status}`);
         }
 
         const data = await response.json();
-        // Simpan ID profil untuk digunakan saat update
         setUserProfileId(data.id);
         setFormData({
           nama: data.nama || '',
@@ -53,15 +61,15 @@ const EditProfilePage = () => {
           no_hp: data.no_hp || ''
         });
       } catch (err) {
-        console.error("Error fetching current profile for edit:", err);
-        setError(`Gagal memuat data profil saat ini: ${err.message}`);
+        console.error("Error fetching profile:", err);
+        setError(`Gagal memuat data profil: ${err.message}`);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCurrentProfile();
-  }, []); // Hanya jalankan sekali saat komponen dimuat
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -80,10 +88,18 @@ const EditProfilePage = () => {
     }
 
     try {
-      // API_URL untuk PATCH/PUT ke PenghuniKostViewSet berdasarkan ID
-      // Ini akan menjadi seperti: http://localhost:8000/api/pencari/penghuni/4/
-      const API_UPDATE_URL = `http://localhost:8000/api/pencari/penghuni/${userProfileId}/`;
-      // TIDAK ADA PENGAMBILAN TOKEN DARI LOCALSTORAGE KARENA ANDA TIDAK MENGGUNAKANNYA
+      const userRole = localStorage.getItem("user_role");
+      let API_UPDATE_URL;
+
+      if (userRole === "pencari") {
+        API_UPDATE_URL = `http://localhost:8000/api/pencari/penghuni/${userProfileId}/`;
+      } else if (userRole === "pemilik") {
+        API_UPDATE_URL = `http://localhost:8000/api/pemilik/pemilik/${userProfileId}/`;
+      } else {
+        setError("Role pengguna tidak dikenali.");
+        setLoading(false);
+        return;
+      }
 
       const response = await fetch(API_UPDATE_URL, {
         method: 'PATCH', // Menggunakan PATCH untuk update sebagian
@@ -145,15 +161,15 @@ const EditProfilePage = () => {
 
   // Jika userProfileId masih null setelah loading selesai (misal gagal fetch)
   if (userProfileId === null) {
-      return (
-          <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-grow flex items-center justify-center p-4 md:p-8 lg:p-12">
-                  <p className="text-red-500 text-xl">Data pengguna tidak ditemukan untuk mengedit profil. Silakan coba lagi.</p>
-              </main>
-              <Footer />
-          </div>
-      );
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow flex items-center justify-center p-4 md:p-8 lg:p-12">
+          <p className="text-red-500 text-xl">Data pengguna tidak ditemukan untuk mengedit profil. Silakan coba lagi.</p>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
 
