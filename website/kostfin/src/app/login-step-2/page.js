@@ -24,7 +24,7 @@ const LoginStep2 = () => {
     // Ini adalah GET request. Pastikan backend Anda merespons dengan {"username": "..."}
     // atau {"username": null, "message": "Nomor HP tidak ditemukan"}
     console.log("🚀 Memulai fetch untuk username di Login Step 2...");
-    
+
     // Coba di endpoint pemilik
     fetch(`http://localhost:8000/api/pemilik/login/?no_hp=${phone}`)
       .then((res) => res.json())
@@ -33,6 +33,8 @@ const LoginStep2 = () => {
           console.log("📌 Username dari Pemilik Kost:", data.username);
           setUsername(data.username);
           setUserType("pemilik"); // Set userType
+          localStorage.setItem("user_id", data.id);
+          localStorage.setItem("user_role", "pemilik");
         } else {
           // Jika tidak ada di pemilik, coba di pencari
           fetch(`http://localhost:8000/api/pencari/login/?no_hp=${phone}`)
@@ -42,6 +44,8 @@ const LoginStep2 = () => {
                 console.log("📌 Username dari Pencari Kost:", data.username);
                 setUsername(data.username);
                 setUserType("pencari"); // Set userType
+                localStorage.setItem("user_id", data.id); // ✅ Set user_id
+                localStorage.setItem("user_role", "pencari");
               } else {
                 console.log("❌ Username tidak ditemukan untuk nomor ini!");
                 setError("User tidak ditemukan untuk nomor ini. Coba lagi.");
@@ -85,9 +89,9 @@ const LoginStep2 = () => {
 
     // Tentukan URL API login berdasarkan tipe user
     // ✅ PENTING: Pastikan URL ini diakhiri dengan garis miring (trailing slash) untuk Django
-    const apiUrl = userType === "pemilik" 
-                   ? `http://localhost:8000/api/pemilik/login/` 
-                   : `http://localhost:8000/api/pencari/login/`;
+    const apiUrl = userType === "pemilik"
+      ? `http://localhost:8000/api/pemilik/login/`
+      : `http://localhost:8000/api/pencari/login/`;
 
     try {
       console.log(`🚀 Mengirim permintaan login ke: ${apiUrl}`);
@@ -103,15 +107,12 @@ const LoginStep2 = () => {
       console.log("📝 Respon dari server:", data);
 
       // ✅ Cek properti 'success' dari respons backend
-      if (response.ok && data.success) { // Login Berhasil jika status 2xx dan success: true
-        console.log("✅ Login Berhasil! Redirecting to home...");
-        // ✅ Langsung masuk ke home
+      if (response.ok && data.success && userType === "pemilik") { // Login Berhasil jika status 2xx dan success: true
+        router.push("/dashboard/pemilik/");
+      } else if (response.ok && data.success && userType === "pencari") {
         router.push("/");
       } else {
-        // ✅ Login Gagal
-        console.log("❌ Login Gagal!");
-        // Tampilkan pesan error dari backend, atau pesan default jika tidak ada
-        setError(data.message || "Password salah atau terjadi kesalahan.");
+        setError(data.message || "Login gagal. Periksa nomor HP dan password Anda.");
       }
     } catch (err) {
       // Tangani error jaringan atau server tidak merespons
