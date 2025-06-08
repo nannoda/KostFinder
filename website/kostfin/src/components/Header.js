@@ -1,12 +1,18 @@
+// C:\Users\LENOVO\Documents\GitHub\KostFinder\website\kostfin\src\components\Header.jsx
+
+"use client"; // Pastikan ini ada di baris paling atas
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Ini sudah ada
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const router = useRouter(); // Ini sudah ada
 
   useEffect(() => {
-    const phone = localStorage.getItem("phone"); // ✅ Cek apakah user sudah login
+    const phone = localStorage.getItem("phone");
     setIsLoggedIn(!!phone);
   }, []);
 
@@ -18,13 +24,13 @@ const Header = () => {
         <button className="bg-black text-white px-4 py-2 rounded">Jadi Pemilik Kost</button>
 
         {isLoggedIn ? (
-          // ✅ Dropdown Profil
+          // Dropdown Profil
           <div className="relative">
             <img
               src="/profil/foto_default.png"
               alt="Profile"
               className="w-10 h-10 rounded-full cursor-pointer"
-              onClick={() => setShowDropdown(!showDropdown)} // ✅ Toggle dropdown saat diklik
+              onClick={() => setShowDropdown(!showDropdown)}
             />
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-50">
@@ -34,8 +40,14 @@ const Header = () => {
                 <p
                   className="p-2 text-red-500 hover:bg-gray-200 cursor-pointer"
                   onClick={() => {
-                    localStorage.removeItem("phone"); // ✅ Logout user
-                    window.location.reload(); // ✅ Refresh halaman
+                    localStorage.removeItem("phone"); // Logout user
+                    // ✅ MODIFIKASI KEMBALI DI SINI
+                    if (router.pathname === '/') { // Jika sedang di halaman home
+                        router.refresh(); // Menggunakan router.refresh() untuk Next.js App Router
+                    } else {
+                        router.push('/'); // Arahkan ke home jika di halaman lain
+                    }
+                    // ✅ AKHIR MODIFIKASI
                   }}
                 >
                   Logout
@@ -44,7 +56,7 @@ const Header = () => {
             )}
           </div>
         ) : (
-          // ✅ Tombol Login jika user belum masuk
+          // Tombol Login jika user belum masuk
           <Link href="/login">
             <button className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
               Login

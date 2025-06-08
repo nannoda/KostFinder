@@ -17,6 +17,9 @@ class PenghuniKost(models.Model):
     );
     username = models.CharField(max_length=255, unique=True, null= False);
     password = models.CharField(max_length=128, null= False);
+
+    email_confirmed = models.BooleanField(default=True);
+    mobile_confirmed = models.BooleanField(default=True);
     
     def save(self, *args, **kwargs):
         if not self.password.startswith('pbkdf2'):
