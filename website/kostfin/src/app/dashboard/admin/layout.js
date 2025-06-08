@@ -1,13 +1,17 @@
+"use client";
 import Link from "next/link";
-import { Home, Building2, MessageSquare, User, UserRound } from "lucide-react";
+import { Home, Building2, MessageSquare, User, UserRound, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function PemilikLayout({ children }) {
+
+export default function AdminLayout({ children }) {
+    const router = useRouter();
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
             <aside className="w-64 bg-gray-900 text-white flex flex-col">
                 <div className="text-2xl font-bold p-4 border-b border-gray-700">
-                    KostFinder
+                    <img src="/logo/logo_kostfin_white.png" alt="Logo" className="h-10 inline-block ml-5" />
                 </div>
                 <nav className="flex-1 px-4 py-6 space-y-6 text-sm">
                     {/* Beranda */}
@@ -62,9 +66,26 @@ export default function PemilikLayout({ children }) {
                             </Link>
                         </div>
                     </div>
+                    <div>
+                        <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Lain-lain</h3>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('user_role');
+                                    localStorage.removeItem('phone');
+                                    router.push('/');
+                                }}
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition w-full text-left"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
                 </nav>
                 <div className="p-4 border-t border-gray-700 text-sm text-center text-gray-400">
-                    <span className="hover:text-white cursor-pointer">© KostFin</span>
+                    <span className="hover:text-white cursor-pointer">© KostFinder</span>
                 </div>
             </aside>
 

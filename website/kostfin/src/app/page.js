@@ -300,7 +300,15 @@ const Home = () => {
           <div className="w-170 pl-9">
             <h3 className="text-4xl font-bold text-black mb-2">Coba Promosikan Kost Anda Sekarang Juga!</h3>
             <p className="text-gray-600 mb-4">Dapatkan kemudahan dalam mempromosikan kost Anda!</p>
-            <button className="bg-black text-white px-4 py-2 w-50 h-10 rounded-full">Jadi Pemilik Kost</button>
+            <button
+              onClick={() => {
+                localStorage.setItem("user_role", "pemilik");
+                router.push("/register");
+              }}
+              className="bg-black text-white px-4 py-2 w-50 h-10 rounded-full"
+            >
+              Jadi Pemilik Kost
+            </button>
           </div>
 
           {/* Gambar di kanan */}

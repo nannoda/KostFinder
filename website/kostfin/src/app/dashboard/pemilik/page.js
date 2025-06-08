@@ -94,6 +94,16 @@ export default function PemilikDashboard() {
         fetchStats();
     }, []);
 
+    const handleLogout = () => {
+        localStorage.removeItem("phone");
+        localStorage.removeItem("user_role");
+        if (pathname === "/") {
+            window.location.reload();
+        } else {
+            router.push("/");
+        }
+    };
+
     return (
         <section className="p-6">
             <div className="flex justify-between items-center mb-6">

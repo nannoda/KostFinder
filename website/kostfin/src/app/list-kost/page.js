@@ -49,30 +49,52 @@ export default function KostListPage() {
     useEffect(() => {
         const fetchKostData = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/pemilik/kost/");
-                const data = await response.json();
+                // Ambil data kost
+                const kostResponse = await fetch("http://127.0.0.1:8000/api/pemilik/kost/");
+                const kostData = await kostResponse.json();
 
-                const formatted = data
+                // Ambil data review
+                const reviewResponse = await fetch("http://127.0.0.1:8000/api/pencari/review/");
+                const reviewData = await reviewResponse.json();
+
+                // Hitung rata-rata rating per kost
+                const ratingMap = {};
+                reviewData.forEach((review) => {
+                    const kostId = review.kost; // Pastikan 'kost' ini adalah ID kost
+                    if (!ratingMap[kostId]) {
+                        ratingMap[kostId] = { total: 0, count: 0 };
+                    }
+                    ratingMap[kostId].total += review.rating;
+                    ratingMap[kostId].count += 1;
+                });
+
+                // Gabungkan dengan data kost
+                const formatted = kostData
                     .filter(kost => kost.status === "disetujui" && kost.status_booking === "tersedia")
-                    .map(kost => ({
-                        id: kost.id,
-                        type: kost.tipe_kost,
-                        rating: kost.rating,
-                        priceValue: kost.harga,
-                        price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
-                        title: kost.nama,
-                        location: kost.alamat,
-                        lokasi: kost.lokasi,
-                        fasility: kost.fasilitas,
-                        image: kost.gambar_kost?.[0]?.gambar1 || null,
-                        created_at: new Date(kost.created_at),
-                    }));
+                    .map(kost => {
+                        const ratingInfo = ratingMap[kost.id] || { total: 0, count: 0 };
+                        const averageRating = ratingInfo.count > 0 ? ratingInfo.total / ratingInfo.count : 0;
+
+                        return {
+                            id: kost.id,
+                            type: kost.tipe_kost,
+                            rating: averageRating,
+                            priceValue: kost.harga,
+                            price: `IDR ${kost.harga.toLocaleString("id-ID")}`,
+                            title: kost.nama,
+                            location: kost.alamat,
+                            lokasi: kost.lokasi,
+                            fasility: kost.fasilitas,
+                            image: kost.gambar_kost?.[0]?.gambar1 || null,
+                            created_at: new Date(kost.created_at),
+                        };
+                    });
 
                 setAllKostData(formatted);
                 setKostData(formatted);
                 setIsDataReady(true);
             } catch (err) {
-                console.error("Failed to fetch kost:", err);
+                console.error("Failed to fetch kost or reviews:", err);
             }
         };
 
@@ -243,8 +265,9 @@ export default function KostListPage() {
                                         <Heart className="text-gray-400 hover:text-red-500 w-5 h-5" />
                                     </div>
 
-                                    <div className="absolute top-3 left-3 z-20 bg-white/80 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold text-black">
-                                        {kost.type} • ★ {kost.rating.toFixed(1)}
+                                    <div className="absolute top-3 left-3 z-20 bg-white/80 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold text-black flex items-center gap-1">
+                                        <span>{kost.type}</span>
+                                        <span className="text-yellow-400">★ {kost.rating.toFixed(1)}</span>
                                     </div>
 
                                     <div className="absolute bottom-3 left-3 z-20">

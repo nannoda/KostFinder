@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link';
 import {
     Home,
@@ -5,15 +6,18 @@ import {
     Star,
     CalendarCheck,
     Settings,
+    LogOut,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function PemilikLayout({ children }) {
+    const router = useRouter();
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
             <aside className="w-64 bg-gray-900 text-white flex flex-col">
                 <div className="text-2xl font-bold p-4 border-b border-gray-700">
-                    KostFinder
+                    <img src="/logo/logo_kostfin_white.png" alt="Logo" className="h-10 inline-block ml-5" />
                 </div>
                 <nav className="flex-1 px-4 py-6 text-sm space-y-6">
                     {/* === Navigasi Utama === */}
@@ -59,7 +63,7 @@ export default function PemilikLayout({ children }) {
 
                     {/* === Pengaturan === */}
                     <div>
-                        <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Pengaturan</h3>
+                        <h3 className="text-gray-400 uppercase text-xs font-semibold px-2 mb-2">Lain-lain</h3>
                         <div className="space-y-2">
                             <Link
                                 href="/profile"
@@ -68,11 +72,22 @@ export default function PemilikLayout({ children }) {
                                 <Settings className="w-5 h-5" />
                                 Akun
                             </Link>
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('user_role');
+                                    localStorage.removeItem('phone');
+                                    router.push('/');
+                                }}
+                                className="flex items-center gap-3 p-2 rounded hover:bg-gray-800 transition w-full text-left"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                Logout
+                            </button>
                         </div>
                     </div>
                 </nav>
                 <div className="p-4 border-t border-gray-700 text-sm text-center text-gray-400">
-                    <span className="hover:text-white cursor-pointer">© KostFin</span>
+                    <span className="hover:text-white cursor-pointer">© KostFinder</span>
                 </div>
             </aside>
 
@@ -81,12 +96,8 @@ export default function PemilikLayout({ children }) {
                 <header className="flex items-center justify-between p-4 bg-white shadow">
                     <h1 className="text-lg font-semibold">Dashboard Pemilik</h1>
                     <div className="flex items-center space-x-4">
-                        <button className="relative">
-                            <span className="absolute right-0 top-0 h-2 w-2 bg-red-500 rounded-full"></span>
-                            🔔
-                        </button>
                         <img
-                            src="https://i.pravatar.cc/40"
+                            src="/profil/foto_default.png"
                             alt="Avatar"
                             className="rounded-full w-10 h-10"
                         />

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // ✅ Import untuk navigasi
+import { useEffect } from "react"; // ✅ Import untuk efek samping
 
 const RegisterPage = () => {
   const [role, setRole] = useState(""); // ✅ Pilihan role
@@ -11,6 +12,15 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [alamatKost, setAlamatKost] = useState(""); // ✅ Hanya untuk pemilik kost
   const router = useRouter(); // ✅ Inisialisasi router
+  const [hasUserRole, setHasUserRole] = useState(false); // ✅ State untuk cek apakah sudah ada role
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("user_role");
+    if (storedRole) {
+      setHasUserRole(true);
+      setRole(storedRole); // Set role dari localStorage
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

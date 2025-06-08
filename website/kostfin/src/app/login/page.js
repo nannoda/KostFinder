@@ -16,7 +16,7 @@ const LoginPage = () => {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-            setRegisteredPhonesPemilik(data.map(item => item.no_hp));
+          setRegisteredPhonesPemilik(data.map(item => item.no_hp));
         }
       })
       .catch((error) => console.error("❌ Error fetching pemilik phones:", error));
@@ -25,7 +25,7 @@ const LoginPage = () => {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-            setRegisteredPhonesPencari(data.map(item => item.no_hp));
+          setRegisteredPhonesPencari(data.map(item => item.no_hp));
         }
       })
       .catch((error) => console.error("❌ Error fetching pencari phones:", error));
@@ -111,7 +111,7 @@ const LoginPage = () => {
               Continue
             </button>
             <button
-              onClick={() => router.push("/register")}
+              onClick={() => { router.push("/register"); localStorage.removeItem("user_role"); }}
               className="w-1/2 bg-gray-300 text-black py-3 rounded-full text-md font-medium hover:bg-gray-400 transition-all"
             >
               Register

@@ -257,7 +257,7 @@ const DetailKost = () => {
 
                     {/* Kanan - Sidebar Sticky */}
                     <div className="col-span-1">
-                        <div className="sticky top-4 bg-white shadow-md rounded-lg p-4 text-center border border-gray-200">
+                        <div className="sticky top-20 bg-white shadow-md rounded-lg p-4 text-center border border-gray-200">
                             <p className="text-sm text-gray-500">Harga per bulan</p>
                             <p className="text-xl font-semibold text-primary">IDR {kost.harga.toLocaleString("id-ID")}</p>
                             <button
