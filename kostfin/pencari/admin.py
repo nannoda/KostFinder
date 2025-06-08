@@ -12,7 +12,7 @@ class NotifikasiAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'kost', 'penghuni', 'status_booking', 'tanggal_booking', 'metode_pembayaran');
+    list_display = ('id', 'kost', 'penghuni', 'status_booking', 'tanggal_booking', 'tanggal_masuk');
 
 @admin.register(Pembayaran)
 class PembayaranAdmin(admin.ModelAdmin):
@@ -20,4 +20,4 @@ class PembayaranAdmin(admin.ModelAdmin):
 
 @admin.register(ReviewRating)
 class ReviewRatingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'admin', 'penghuni', 'komentar', 'rating');
+    list_display = ('id', 'admin', 'penghuni', 'komentar', 'rating', 'status', 'tanggal');
