@@ -159,7 +159,10 @@ const LoginStep2 = () => {
             />
           </div>
 
-          <p className="text-sm text-blue-600 text-left cursor-pointer hover:underline">
+          <p
+            className="text-sm text-blue-600 text-left cursor-pointer hover:underline"
+            onClick={() => router.push("/forgot-password")} // ✅ Ubah ini
+          >
             Forgot Your Password?
           </p>
 
