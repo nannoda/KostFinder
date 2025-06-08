@@ -4,62 +4,119 @@ import { useRouter } from "next/navigation";
 
 const LoginStep2 = () => {
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("John Doe");
-  const [error, setError] = useState("");
-  const [userRole, setUserRole] = useState(""); // 🔧 Tambahkan role
+  const [username, setUsername] = useState("John Doe"); // Default jika tidak ditemukan
+  const [userType, setUserType] = useState(null); // Menyimpan tipe user (pemilik/pencari)
+  const [error, setError] = useState(""); // State untuk pesan error
   const router = useRouter();
-  const [userid, setUserid] = useState("");
 
   useEffect(() => {
+    console.log("🔥 `useEffect` dijalankan di Login Step 2!");
     const phone = localStorage.getItem("phone");
+    console.log("📞 Nomor HP dari `localStorage`:", phone);
 
     if (!phone) {
-      router.push("/login");
+      console.log("❌ Nomor HP kosong, redirect ke login!");
+      router.push("/login"); // Kembali ke Login Step 1 jika tidak ada nomor HP
       return;
     }
 
-    // 🔍 Cek sebagai Pemilik
-    fetch(`http://localhost:8000/api/pemilik/login?no_hp=${phone}`)
+    // ✅ Bagian ini untuk mengambil username berdasarkan nomor HP
+    // Ini adalah GET request. Pastikan backend Anda merespons dengan {"username": "..."}
+    // atau {"username": null, "message": "Nomor HP tidak ditemukan"}
+    console.log("🚀 Memulai fetch untuk username di Login Step 2...");
+    
+    // Coba di endpoint pemilik
+    fetch(`http://localhost:8000/api/pemilik/login/?no_hp=${phone}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.username) {
+          console.log("📌 Username dari Pemilik Kost:", data.username);
           setUsername(data.username);
-          setUserRole("pemilik");
-          localStorage.setItem("user_id", data.id);
-          localStorage.setItem("user_role", "pemilik"); // ✅ Set user_role
-          console.log("User ID:", data.id);
-          console.log(localStorage.getItem("user_id"));
+          setUserType("pemilik"); // Set userType
         } else {
-          // 🔍 Jika bukan pemilik, cek sebagai pencari
-          fetch(`http://localhost:8000/api/pencari/login?no_hp=${phone}`)
+          // Jika tidak ada di pemilik, coba di pencari
+          fetch(`http://localhost:8000/api/pencari/login/?no_hp=${phone}`)
             .then((res) => res.json())
             .then((data) => {
               if (data.username) {
-                console.log("🔍 Data pencari:", data); // 👈 cek isi objek
+                console.log("📌 Username dari Pencari Kost:", data.username);
                 setUsername(data.username);
-                setUserRole("pencari");
-                localStorage.setItem("user_id", data.id); // ✅ Set user_id
-                localStorage.setItem("user_role", "pencari"); // ✅ Set user_role
-                console.log("User ID (pencari):", data.id);
+                setUserType("pencari"); // Set userType
               } else {
-                setError("User tidak ditemukan");
+                console.log("❌ Username tidak ditemukan untuk nomor ini!");
+                setError("User tidak ditemukan untuk nomor ini. Coba lagi.");
               }
             })
-            .catch((error) => console.error("❌ Error pencari:", error));
+            .catch((error) => {
+              console.error("❌ Error mengambil username pencari:", error);
+              setError("Gagal mengambil data user (Pencari).");
+            });
         }
       })
-      .catch((error) => console.error("❌ Error pemilik:", error));
+      .catch((error) => {
+        console.error("❌ Error mengambil username pemilik:", error);
+        setError("Gagal mengambil data user (Pemilik).");
+      });
   }, []);
 
+  // Handler saat form password disubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Reset pesan error setiap kali submit
 
-    if (userRole === "pemilik") {
-      router.push("/dashboard/pemilik/"); // ✅ Redirect ke dashboard pemilik
-    } else if (userRole === "pencari") {
-      router.push("/"); // ✅ Atau redirect ke halaman utama pencari
-    } else {
-      setError("Gagal login. Silakan coba lagi.");
+    // Tambahkan log ini untuk debugging
+    console.log("Attempting to submit password:", password);
+    console.log("Current phone from localStorage:", localStorage.getItem("phone"));
+    console.log("Detected user type:", userType);
+
+
+    // Pastikan userType sudah teridentifikasi sebelum melanjutkan
+    if (!userType) {
+      setError("Tipe pengguna tidak dikenali. Mohon coba ulangi proses login.");
+      return;
+    }
+
+    const phone = localStorage.getItem("phone");
+    if (!phone) {
+      setError("Nomor HP tidak ditemukan. Mohon ulangi proses login.");
+      router.push("/login"); // Kembali ke Login Step 1
+      return;
+    }
+
+    // Tentukan URL API login berdasarkan tipe user
+    // ✅ PENTING: Pastikan URL ini diakhiri dengan garis miring (trailing slash) untuk Django
+    const apiUrl = userType === "pemilik" 
+                   ? `http://localhost:8000/api/pemilik/login/` 
+                   : `http://localhost:8000/api/pencari/login/`;
+
+    try {
+      console.log(`🚀 Mengirim permintaan login ke: ${apiUrl}`);
+      const response = await fetch(apiUrl, {
+        method: "POST", // Menggunakan POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ no_hp: phone, password: password }), // Kirim no_hp dan password
+      });
+
+      const data = await response.json(); // Parse respons JSON
+      console.log("📝 Respon dari server:", data);
+
+      // ✅ Cek properti 'success' dari respons backend
+      if (response.ok && data.success) { // Login Berhasil jika status 2xx dan success: true
+        console.log("✅ Login Berhasil! Redirecting to home...");
+        // ✅ Langsung masuk ke home
+        router.push("/");
+      } else {
+        // ✅ Login Gagal
+        console.log("❌ Login Gagal!");
+        // Tampilkan pesan error dari backend, atau pesan default jika tidak ada
+        setError(data.message || "Password salah atau terjadi kesalahan.");
+      }
+    } catch (err) {
+      // Tangani error jaringan atau server tidak merespons
+      console.error("❌ Terjadi kesalahan saat melakukan fetch:", err);
+      setError("Terjadi kesalahan jaringan. Coba lagi.");
     }
   };
 
@@ -71,31 +128,23 @@ const LoginStep2 = () => {
 
         {/* Bagian Profil */}
         <div className="flex items-center mb-4">
-          <img
-            src="/profil/foto_default.png"
-            alt="Profile Picture"
-            className="w-12 h-12 rounded-full border shadow-lg"
-          />
+          <img src="/profil/foto_default.png" alt="Profile Picture" className="w-12 h-12 rounded-full border shadow-lg" />
           <div className="ml-4">
             <h3 className="text-xl font-bold text-black">
-              Hello, {error ? "User tidak ditemukan" : username}
+              Hello, {error && error.includes("User tidak ditemukan") ? "User tidak ditemukan" : username}
             </h3>
-            <p
-              className="text-sm text-gray-600 cursor-pointer hover:underline"
-              onClick={() => router.push("/login")}
-            >
+            <p className="text-sm text-gray-600 cursor-pointer hover:underline" onClick={() => router.push("/login")}>
               Not You?
             </p>
           </div>
         </div>
 
-        {error && (
-          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
-        )}
+        {/* Area untuk menampilkan pesan error */}
+        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
 
         {/* Input Password */}
         <form onSubmit={handleSubmit} className="space-y-6 text-center">
-          <div className="relative w-full mx-auto">
+          <div className="relative w-[100%] mx-auto">
             <label className="absolute top-2 left-7 text-xs font-medium text-black">
               Enter Your Password
             </label>

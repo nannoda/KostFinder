@@ -4,6 +4,8 @@ from .models import *;
 from .serializers import *;
 from rest_framework.views import APIView;
 from rest_framework.response import Response;
+import json # ✅ Pastikan ini diimport
+from django.contrib.auth.hashers import check_password
 from rest_framework.decorators import api_view
 from django.core.mail import send_mail
 from django.conf import settings
@@ -121,16 +123,42 @@ class PenghuniLoginView(APIView):
         return Response(list(penghuni_kost), status=status.HTTP_200_OK)
 
     def post(self, request):
-        # ... metode post Anda (jangan diubah) ...
-        no_hp = request.data.get("no_hp")
-        if not no_hp:
-            return Response({"error": "Nomor telepon diperlukan"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            no_hp = request.data.get("no_hp")
+            password = request.data.get("password") # Akan None jika dari Login Step 1
+        except Exception:
+            return Response({"success": False, "message": "Format data request tidak valid."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Validasi dasar: nomor HP harus ada
+        if not no_hp:
+            return Response({"success": False, "message": "Nomor HP diperlukan."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Cari user berdasarkan nomor HP
         penghuni_kost = PenghuniKost.objects.filter(no_hp=no_hp).first()
-        if penghuni_kost:
-            return Response({"message": "Nomor ditemukan, lanjut ke login step 2"}, status=status.HTTP_200_OK)
-        return Response({"error": "Nomor telepon tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
-    
+
+        # Cek apakah nomor HP terdaftar
+        if not penghuni_kost:
+            return Response({"success": False, "message": "Nomor HP tidak terdaftar."}, status=status.HTTP_404_NOT_FOUND)
+
+        # ✅ LOGIKA PEMISAH ANTARA STEP 1 DAN STEP 2
+        if password: # Jika password ada, berarti ini dari Login Step 2
+            # Ini adalah skenario Login Step 2: verifikasi password
+            if check_password(password, penghuni_kost.password):
+                # Login BERHASIL
+                return Response({
+                    "success": True,
+                    "message": "Login berhasil!"
+                }, status=status.HTTP_200_OK)
+            else:
+                # Password SALAH
+                return Response({
+                    "success": False,
+                    "message": "Password salah."
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        else: # Jika password TIDAK ada (None), berarti ini dari Login Step 1
+            # Ini adalah skenario Login Step 1: hanya verifikasi nomor HP
+            return Response({"success": True, "message": "Nomor ditemukan, lanjut ke login step 2."}, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 def buat_booking(request):
     serializer = BookingSerializer(data=request.data)
