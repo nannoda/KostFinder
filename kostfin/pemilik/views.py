@@ -5,7 +5,7 @@ from .serializers import PemilikKostSerializers, KostImageSerializers, KostSeria
 from rest_framework.views import APIView;
 from rest_framework.response import Response
 import json # ✅ Pastikan ini diimport
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 
 # Create your views here.
 
@@ -51,7 +51,8 @@ class PemilikLoginView(APIView):
     def post(self, request):
         try:
             no_hp = request.data.get("no_hp")
-            password = request.data.get("password") # Akan None jika dari Login Step 1
+            password = request.data.get("password") # Akan None jika dari Login Step 1 / Lupa Password
+            new_password = request.data.get("new_password") # ✅ Akan ada jika dari Lupa Password
         except Exception:
             return Response({"success": False, "message": "Format data request tidak valid."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -59,30 +60,23 @@ class PemilikLoginView(APIView):
         if not no_hp:
             return Response({"success": False, "message": "Nomor HP diperlukan."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Cari user berdasarkan nomor HP di model PemilikKost
+        # Cari user berdasarkan nomor HP
         pemilik_kost = PemilikKost.objects.filter(no_hp=no_hp).first()
 
         # Cek apakah nomor HP terdaftar
         if not pemilik_kost:
             return Response({"success": False, "message": "Nomor HP tidak terdaftar."}, status=status.HTTP_404_NOT_FOUND)
 
-        # ✅ LOGIKA PEMISAH ANTARA STEP 1 DAN STEP 2
-        if password: # Jika password ada, berarti ini dari Login Step 2 (verifikasi password)
-            # Ini adalah skenario Login Step 2: verifikasi password
-            if check_password(password, pemilik_kost.password): # ✅ Gunakan pemilik_kost.password
-                # Login BERHASIL
-                return Response({
-                    "success": True,
-                    "message": "Login berhasil!"
-                    # Anda bisa menambahkan data user lain di sini jika perlu
-                }, status=status.HTTP_200_OK)
+        # ✅ LOGIKA PEMISAH ANTARA SKENARIO
+        if new_password: # ✅ SKENARIO LUPA PASSWORD
+            pemilik_kost.password = make_password(new_password) # Hash password baru
+            pemilik_kost.save()
+            return Response({"success": True, "message": "Password berhasil direset."}, status=status.HTTP_200_OK)
+        elif password: # SKENARIO LOGIN STEP 2 (password ada, tapi bukan new_password)
+            if check_password(password, pemilik_kost.password):
+                return Response({"success": True, "message": "Login berhasil!"}, status=status.HTTP_200_OK)
             else:
-                # Password SALAH
-                return Response({
-                    "success": False,
-                    "message": "Password salah."
-                }, status=status.HTTP_401_UNAUTHORIZED)
-        else: # Jika password TIDAK ada (None), berarti ini dari Login Step 1 (hanya verifikasi nomor HP)
-            # Ini adalah skenario Login Step 1: hanya verifikasi nomor HP
+                return Response({"success": False, "message": "Password salah."}, status=status.HTTP_401_UNAUTHORIZED)
+        else: # SKENARIO LOGIN STEP 1 (hanya no_hp, tidak ada password atau new_password)
             return Response({"success": True, "message": "Nomor ditemukan, lanjut ke login step 2."}, status=status.HTTP_200_OK)
 
